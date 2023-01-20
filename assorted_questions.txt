@@ -1,0 +1,10 @@
+- consider: 
+	- actresses alongside actors as a role enum
+	- we probably want to be able to differentiate between movies and series
+	- for the parameters.json, should we be able to include multiple possible names referring to the same person? ex: richard gere, richard, gere
+		- similarly, should we allow for a range of different award names in the json? or just the official one? we probably need to have a field like "nicknames" for awards, since people will probably be abbreviating some of the longer ones. 
+			- an example of an issue we may run into is 2 pieces of content winning best drama, but 1 is a series and 1 is a movie, so we need to make sure we recognize that both series and movies are eligible for having a best drama award and make them distinct
+	- should we include presenter/host information in the parameters.json?
+	- how are we doing nominee-type in the json? It should be useful for differentiating between actors/people and content, but should we include genre in it or have that be a separate field that is N/A for people? 
+		- We could alternatively have something like "nominee-type: person/series/movie" and "nominee-subtype: actor/director/.../drama/comedy/action/animated/..."
+	-
