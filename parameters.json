@@ -3,8 +3,286 @@
     "event_name": "Golden Globes",
     "awards": [
         {
-            "name": "example",
-            "nominees": ["person1", "person2"]
+            "name": "Best Picture - Drama",
+            "nominees": {"Argo": ["Argo"], 
+                        "Django Unchained":["Django Unchained", "Django"], 
+                        "Life of Pi": ["Life of Pi", "The Life of Pi", "Pi"], 
+                        "Lincoln": ["Lincoln"], 
+                        "Zero Dark Thirty": ["Zero Dark Thirty", "Dark Thirty", "Zero Dark", "0 Dark", "0 Dark Thirty", "Zero Dark 30", "Dark 30", "0 Dark 30"]},
+            "nominee-type":"Picture",
+            "nominee-genre": "Drama", 
+            "winner": "Argo"
+        },
+        {
+            "name": "Best Actor - Motion Picture - Drama",
+            "nominees": {"Daniel Day-Lewis": ["Daniel Day-Lewis", "Dan Day-Lewis", "Day-Lewis", "Daniel"], 
+                        "Richard Gere": ["Richard Gere", "Gere", "Richard"], 
+                        "Joaquin Phoenix": ["Joaquin Phoenix", "Joaquin", "Phoenix"], 
+                        "Denzel Washington": ["Denzel Washington", "Denzel", "Washington"], 
+                        "John Hawkes": ["John Hawkes", "Hawkes", "John"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Daniel Day-Lewis"
+        },
+        {
+            "name": "Best Picture - Musical/Comedy",
+            "nominees": {"Les Miserables": ["Les Miserables", "Les Misérables", "Le Miserables"], 
+                        "The Best Exotic Marigold Hotel": ["The Best Exotic Marigold Hotel", "Marigold Hotel", "Best Exotic Marigold Hotel", "Exotic Marigold Hotel"], 
+                        "Moonrise Kingdom": ["Moonrise Kingdom", "Moonrise"], 
+                        "Salmon Fishing in the Yemen": ["Salmon Fishing in the Yemen", "Salmon Fishing", "Fishing in Yemen", "Samon Fishing", "Samon Fishing in Yemen"], 
+                        "Silver Linings Playbook": ["Silver Linings Playbook", "Silver Linings","Silver Playbook"]},
+            "nominee-type": "Picture",
+            "nominee-genre": "N/A",
+            "winner": "Les Miserables"
+        },
+        {
+            "name": "Best Actress - Motion Picture - Drama",
+            "nominees": {"Jessica Chastain": ["Jessica Chastain", "Jessica", "Jess Chastain", "Chastain"], 
+                        "Marion Cotillard": ["Marion Cotillard", "Marion", "Mary Cotillard", "Marion Cotilard", "Mary Cotilard", "Cotillard", "Cotilard"], 
+                        "Helen Mirren": ["Helen Mirren", "Helen", "Mirren", "Miren", "Helen Miren"], 
+                        "Naomi Watts": ["Naomi Watts", "Naomi", "Watts"], 
+                        "Rachel Weisz": ["Rachel Weisz", "Rachel", "Rachel Weis", "Rachel Weiss", "Weisz", "Rachel Weizs"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Jessica Chastain"
+        },
+        {
+            "name": "Best Actress - Motion Picture - Musical/Comedy",
+            "nominees": {"Jennifer Lawrence": ["Jennifer Lawrence", "Jennifer", "Lawrence", "Jen Lawrence"], 
+                        "Emily Blunt": ["Emily Blunt", "Emily", "Blunt"], 
+                        "Judi Dench": ["Judi Dench", "Judi", "Dench"], 
+                        "Maggie Smith": ["Maggie Smith", "Maggie", "Mag Smith", "Smith"], 
+                        "Meryl Streep": ["Meryl Streep", "Meryl", "Streep"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Jennifer Lawrence"
+        },
+        {
+            "name": "Best Actor - Motion Picture - Musical/Comedy",
+            "nominees": {"Hugh Jackman": ["Hugh Jackman", "Jackman"], 
+                        "Jack Black": ["Jack Black"], 
+                        "Ewan McGregor": ["Ewan McGregor", "Ewan", "McGregor"], 
+                        "Bill Murray": ["Bill Murray", "Murray"], 
+                        "Bradley Cooper": ["Bradley Cooper", "Cooper", "Brad Cooper"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Hugh Jackman"
+        },
+        {
+            "name": "Best Supporting Actress - Motion Picture",
+            "nominees": {"Anne Hathaway": ["Anne Hathaway", "Hathaway", "Ann Hathaway"], 
+                        "Amy Adams": ["Amy Adams", "Adams"], 
+                        "Helen Hunt": ["Helen Hunt", "Helen", "Hunt"], 
+                        "Nicole Kidman": ["Nicole Kidman", "Nicole", "Kidman"], 
+                        "Sally Field": ["Sally Field", "Field", "Sally", "Sallie", "Sallie Field"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Anne Hathaway"
+        },
+        {
+            "name": "Best Supporting Actor - Motion Picture",
+            "nominees": {"Christoph Waltz": ["Christoph Waltz", "Chris Waltz", "Cristoph Waltz", "Kristoph Waltz", "Christoph", "Waltz", "Walts", "Chris Walts", "Cristoph Walts", "Kristoph Walts"], 
+                        "Alan Arkin": ["Alan Arkin", "Alan", "Arkin"], 
+                        "Leonardo DiCaprio": ["Leonardo DiCaprio", "Leonardo", "Leo DiCaprio", "DiCaprio", "DeCaprio", "Leonardo DeCaprio"], 
+                        "Tommy Lee Jones": ["Tommy Lee Jones", "Tommy", "Jones", "Lee Jones", "Tom Lee Jones", "Tommy Jones"], 
+                        "Philip Seymour Hoffman": ["Philip Seymour Hoffman", "Phillip Seymour Hoffman", "Philip Hoffman", "Seymour Hoffman", "Phillip Hoffman", "Philip", "Hoffman"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Christoph Waltz"
+        },
+        {
+            "name": "Best Director - Motion Picture",
+            "nominees": {"Ben Affleck": ["Ben Affleck", "Affleck"], 
+                        "Ang Lee": ["Ang Lee", "Lee"], 
+                        "Steven Spielberg": ["Steven Spielberg", "Spielberg", "Steven", "Steve Spielberg"], 
+                        "Kathryn Bigelow": ["Kathryn Bigelow", "Bigelow", "Kathryn"], 
+                        "Quentin Tarantino": ["Quentin Tarantino", "Quintin Tarantino", "Tarantino"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Director",
+            "winner": "Ben Affleck"
+        },
+        {
+            "name": "Best Screenplay - Motion Picture",
+            "nominees": {"Quentin Tarantino": ["Quentin Tarantino", "Quintin Tarantino", "Tarantino"], 
+                        "Chris Terrio": ["Chris Terrio", "Terrio"], 
+                        "Tony Kushner": ["Tony Kushner", "Kushner"], 
+                        "Mark Boal": ["Mark Boal", "Boal"], 
+                        "David O. Russell": ["David O. Russell", "David O Russell", "Russell", "David Russell", "O Russell"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Screenwriter",
+            "winner": "Quentin Tarantino"
+        },
+        {
+            "name": "Best Picture - Animated",
+            "nominees": {"Brave": ["Brave"], 
+                        "Frankenweenie": ["Frankenweenie"], 
+                        "Hotel Transylvania": ["Hotel Transylvania", "Transylvania"], 
+                        "Rise of the Guardians": ["Rise of the Guardians", "Guardians"], 
+                        "Wreck-It Ralph": ["Wreck-It Ralph", "Wreck It Ralph", "Wreck It"]},
+            "nominee-type": "Picture",
+            "nominee-genre": "Animated",
+            "winner": "Brave"
+        },
+        {
+            "name": "Best Picture - Foreign Language",
+            "nominees": {"Amour": ["Amour"], 
+                        "A Royal Affair": ["A Royal Affair", "Royal Affair", "En kongelig affære", "En kongelig affaere"], 
+                        "The Intouchables": ["The Intouchables", "Intouchables"], 
+                        "Rust and Bone": ["Rust and Bone", "De rouille et d'os"], 
+                        "Kon-Tiki": ["Kon-Tiki", "Kon Tiki"]},
+            "nominee-type": "Picture",
+            "nominee-genre": "N/A",
+            "winner": "Amour"
+        },
+        {
+            "name": "Best Score - Motion Picture",
+            "nominees": {"Mychael Danna": ["Mychael Danna", "Danna", "Michael Danna", "Mychael"], 
+                        "John Williams": ["John Williams", "Williams"], 
+                        "Dario Marianelli": ["Dario Marianelli", "Marianelli"], 
+                        "Alexandre Desplat": ["Alexandre Desplat", "Desplat"], 
+                        "Reinhold Heil, Johnny Klimek, Tom Tykwer": ["Reinhold Heil, Johnny Klimek, Tom Tykwer", "Reinhold Heil, Johnny Klimek, and Tom Tykwer", "Reinhold Heil", "Johnny Klimek", "Tom Tykwer", "Heil", "Klimek", "Tykwer"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Musician",
+            "winner": "Mychael Danna"
+        },
+        {
+            "name": "Best Song - Motion Picture",
+            "nominees": {"Skyfall": ["Skyfall"], 
+                        "Act of Valor": ["Act of Valor"], 
+                        "Stand Up Guys": ["Stand Up Guys", "Stand-Up Guys"], 
+                        "The Hunger Games": ["The Hunger Games", "Hunger Games"], 
+                        "Les Miserables": ["Les Miserables", "Les Misérables", "Le Miserables"]},
+            "nominee-type": "Picture",
+            "nominee-genre": "N/A",
+            "winner": "Skyfall"
+        },
+        {
+            "name": "Best Drama Series",
+            "nominees": {"Homeland": ["Homeland"], 
+                        "Breaking Bad": ["Breaking Bad"], 
+                        "Boardwalk Empire": ["Boardwalk Empire"], 
+                        "Downton Abbey": ["Downton Abbey", "Downton Abby"], 
+                        "The Newsroom": ["The Newsroom", "Newsroom"]},
+            "nominee-type": "Series",
+            "nominee-genre": "Drama",
+            "winner": "Homeland"
+        },
+        {
+            "name": "Best Musical/Comedy Series",
+            "nominees": {"Girls": ["Girls"], 
+                        "The Big Bang Theory": ["The Big Bang Theory", "Big Bang Theory"], 
+                        "Episodes": ["Episodes"], 
+                        "Modern Family": ["Modern Family"], 
+                        "Smash": ["Smash"]},
+            "nominee-type": "Series",
+            "nominee-genre": "N/A",
+            "winner": "Girls"
+        },
+        {
+            "name": "Best Limited Series, Anthology Series or Television Motion Picture",
+            "nominees": {"Game Change": ["Game Change"], 
+                        "The Hour": ["The Hour"], 
+                        "The Girl": ["The Girl"], 
+                        "Hatfields & McCoys": ["Hatfields & McCoys", "Hatfields and McCoys"], 
+                        "Political Animals": ["Political Animals"]},
+            "nominee-type": "Series",
+            "nominee-genre": "N/A",
+            "winner": "Game Change"
+        },
+        {
+            "name": "Best Actress - Limited Series, Anthology Series or Television Motion Picture",
+            "nominees": {"Julianne Moore": ["Julianne Moore", "Moore", "Julianne"], 
+                        "Nicole Kidman": ["Nicole Kidman", "Kidman", "Nicole"], 
+                        "Jessica Lange": ["Jessica Lange", "Lange", "Jessica"], 
+                        "Sigourney Weaver": ["Sigourney Weaver", "Weaver", "Sigourney"], 
+                        "Sienna Miller": ["Sienna Miller", "Miller", "Sienna"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Julianne Moore"
+        },
+        {
+            "name": "Best Actor - Limited Series, Anthology Series or Television Motion Picture",
+            "nominees": {"Kevin Costner": ["Kevin Costner", "Costner", "Kevin"], 
+                        "Woody Harrelson": ["Woody Harrelson", "Harrelson", "Woody"], 
+                        "Clive Owen": ["Clive Owen", "Owen", "Clive"], 
+                        "Benedict Cumberbatch": ["Benedict Cumberbatch", "Cumberbatch", "Benedict"], 
+                        "Toby Jones": ["Toby Jones", "Jones", "Toby"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Kevin Costner"
+        },
+        {
+            "name": "Best Television Actress - Drama Series",
+            "nominees": {"Claire Danes": ["Claire Danes", "Danes", "Claire", "Clair Danes"], 
+                        "Glenn Close": ["Glenn Close", "Close", "Glenn", "Glen Close"], 
+                        "Julianna Margulies": ["Julianna Margulies", "Margulies", "Julianna"], 
+                        "Connie Britton": ["Connie Britton", "Britton", "Connie", "Connie Briton"], 
+                        "Michelle Dockery": ["Michelle Dockery", "Dockery", "Michelle"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Claire Danes"
+        },
+        {
+            "name": "Best Television Actor - Drama Series",
+            "nominees": {"Damian Lewis": ["Damian Lewis", "Lewis", "Damian"], 
+                        "Steve Buscemi": ["Steve Buscemi", "Buscemi", "Steve"], 
+                        "Bryan Cranston": ["Bryan Cranston", "Cranston", "Bryan"], 
+                        "Jeff Daniels": ["Jeff Daniels", "Daniels", "Jeff"], 
+                        "Jon Hamm": ["Jon Hamm", "Jon", "Hamm", "Jon Ham", "John Hamm", "John Ham"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Damian Lewis"
+        },
+        {
+            "name": "Best Television Actress - Musical/Comedy Series",
+            "nominees": {"Lena Dunham": ["Lena Dunham", "Dunham", "Lena"], 
+                        "Zooey Deschanel": ["Zooey Deschanel", "Deschanel", "Zooey", "Zoey Deschanel"], 
+                        "Tina Fey": ["Tina Fey", "Fey", "Tina"], 
+                        "Amy Poehler": ["Amy Poehler", "Poehler", "Amy"], 
+                        "Julia Louis-Dreyfus": ["Julia Louis-Dreyfus", "Louis-Dreyfus", "Dreyfus", "Julia", "Julia Dreyfus"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Lena Dunham"
+        },
+        {
+            "name": "Best Television Actor - Musical/Comedy Series",
+            "nominees": {"Don Cheadle": ["Don Cheadle", "Don", "Cheadle"], 
+                        "Alec Baldwin": ["Alec Baldwin", "Baldwin", "Alec"], 
+                        "Matt LeBlanc": ["Matt LeBlanc", "LeBlanc", "Matt", "Matt Le Blanc", "Le Blanc"], 
+                        "Louis C.K.": ["Louis C.K.", "C.K.", "C K", "CK", "C.K", "Louis C.K", "Louis C K", "Louis CK", "Louis"], 
+                        "Jim Parsons": ["Jim Parsons", "Parsons", "Jim", "Jim Parson", "Parson"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Don Cheadle"
+        },
+        {
+            "name": "Cecil B. deMille Award",
+            "nominees": {"Jodie Foster": ["Jodie Foster", "Foster", "Jodie"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Jodie Foster"
+        },
+        {
+            "name": "Best Supporting Actress - Television",
+            "nominees": {"Maggie Smith": ["Maggie Smith", "Smith", "Maggie", "Maggy Smith"], 
+                        "Sarah Paulson": ["Sarah Paulson", "Paulson", "Sarah"], 
+                        "Sofia Vergara": ["Sofia Vergara", "Vergara", "Sofia"], 
+                        "Archie Panjabi": ["Archie Panjabi", "Panjabi", "Archie"], 
+                        "Hayden Panettiere": ["Hayden Panettiere", "Hayden", "Panettiere"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actress",
+            "winner": "Maggie Smith"
+        },
+        {
+            "name": "Best Supporting Actor - Television",
+            "nominees": {"Ed Harris": ["Ed Harris", "Harris", "Ed"], 
+                        "Mandy Patinkin": ["Mandy Patinkin", "Patinkin", "Mandy"], 
+                        "Eric Stonestreet": ["Eric Stonestreet", "Stonestreet", "Eric"], 
+                        "Max Greenfield": ["Max Greenfield", "Greenfield", "Max"], 
+                        "Danny Huston": ["Danny Huston", "Huston", "Danny"]},
+            "nominee-type": "Person",
+            "nominee-genre": "Actor",
+            "winner": "Ed Harris"
         }
     ]
 }
