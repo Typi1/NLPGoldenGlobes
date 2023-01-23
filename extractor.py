@@ -79,13 +79,13 @@ class Content:
     def __init__(self, name: str, nicknames: Optional[set[str]] = {}, genre: Optional[Genre] = None, people: Optional[set[int]] = {}, contentType: Optional[WinType] = None):
         # content title
         self.name = name
-        # alternate title names
+        # alternate title names or empty set
         self.nicknames = nicknames
         # content genre or None
         self.genre = genre
         # set of ids of people who have a role in the content or empty set
         self.people = people
-        # type of content (shouldn't ever be 2/person)
+        # type of content (shouldn't ever be 2/person) or None
         self.contentType = contentType
         
     def __str__(self):
@@ -93,12 +93,14 @@ class Content:
 
 # class representing award
 class Award:
-    def __init__(self, name: str, presenter: Optional[int] = None, nomineeType: Optional[WinType] = None, nominees: Optional[set[int]] = {}, winner: Optional[int] = None):
+    def __init__(self, name: str, nicknames: Optional[set[str]] = {}, presenter: Optional[int] = None, nomineeType: Optional[WinType] = None, nominees: Optional[set[int]] = {}, winner: Optional[int] = None):
         # award name
         self.name = name
+        # alternate names for the award or empty set
+        self.nicknames = nicknames
         # id of person who is the presenter or None
         self.presenter = presenter
-        # type of all nominees (picture/series/person)
+        # type of all nominees (picture/series/person) or None
         self.nomineeType = nomineeType
         # set of ids of people who are the nominees or empty set
         self.nominees = nominees
