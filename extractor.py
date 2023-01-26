@@ -60,12 +60,14 @@ class WinType(Enum):
 
 # class representing people   
 class Person:
-    def __init__(self, id: int, name: str, nicknames: Optional[set[str]] = {}, role: Optional[Role] = None, content_in: Optional[str] = None):
+    def __init__(self, id: int, name: str, nicknames: Optional[set[str]] = None, role: Optional[Role] = None, content_in: Optional[str] = None):
         # person id
         self.id = id
         # person name
         self.name = name
         # set of possible other names for person or empty set
+        if(nicknames == None):
+            nicknames = {}
         self.nicknames = nicknames
         # role of person or None
         self.role = role
@@ -77,14 +79,18 @@ class Person:
 
 # class representing content, like movies or tv shows
 class Content:
-    def __init__(self, name: str, nicknames: Optional[set[str]] = {}, genre: Optional[Genre] = None, people: Optional[set[int]] = {}, contentType: Optional[WinType] = None):
+    def __init__(self, name: str, nicknames: Optional[set[str]] = None, genre: Optional[Genre] = None, people: Optional[set[int]] = None, contentType: Optional[WinType] = None):
         # content title
         self.name = name
         # alternate title names or empty set
+        if(nicknames == None):
+            nicknames = {}
         self.nicknames = nicknames
         # content genre or None
         self.genre = genre
         # set of ids of people who have a role in the content or empty set
+        if(people == None):
+            people = {}
         self.people = people
         # type of content (shouldn't ever be 2/person) or None
         self.contentType = contentType
@@ -95,20 +101,24 @@ class Content:
 # class representing award
 class Award:
     def __init__(self, name: str, 
-    nicknames: Optional[set[str]] = {}, 
+    nicknames: Optional[set[str]] = None, 
     presenters: Optional[set[int]] = None, 
     nomineeType: Optional[WinType] = None, 
-    nominees: Optional[Union[set[int], set[str]]] = {}, 
+    nominees: Optional[Union[set[int], set[str]]] = None, 
     winner: Optional[Union[int, str]] = None):
         # award name
         self.name = name
         # alternate names for the award or empty set
+        if(nicknames == None):
+            nicknames = {}
         self.nicknames = nicknames
         # ids of people who are the presenters or None
         self.presenters = presenters
         # type of all nominees (picture/series/person) or None
         self.nomineeType = nomineeType
         # set of ids of people or content names (keys) who are the nominees or empty set
+        if(nominees == None):
+            nominees = {}
         self.nominees = nominees
         # id of person or name of content (key) who is the winner or None
         self.winner = winner
