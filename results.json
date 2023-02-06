@@ -1,0 +1,452 @@
+{
+    "Hosts": [
+        "Tina Fey",
+        "Amy Poehler"
+    ],
+    "Awards (user generated)": [
+        "Best Drama",
+        "Best Supporting Actor in a Motion Picture",
+        "Best Supporting Actress for Television",
+        "Best Miniseries or Television Motion Picture",
+        "Best Actress in a Miniseries or Television Motion Picture",
+        "Best Actor Television Drama",
+        "Best Television Drama",
+        "Best Original Score in a Motion Picture",
+        "Best Original Song Motion Picture",
+        "Best Actor in a Miniseries or Television Film",
+        "Best Actor in a Television Miniseries",
+        "Best Actress Comedy or Musical",
+        "Best Actress in a Motion Picture Comedy or Musical",
+        "Best Supporting Actor in a Television",
+        "Best Supporting Actress in a Motion Picture Drama",
+        "Best Motion Picture Screenplay",
+        "Best Actor in a Television Comedy or Musical",
+        "Best Foreign Language Film",
+        "Best Screenplay Golden Globes",
+        "Best Actress Television Drama",
+        "Best Actress in Television",
+        "Best Actress in a Television Comedy",
+        "Best Animated Film Golden Globes",
+        "Best Director Motion Picture",
+        "Best Television Comedy or Musical",
+        "Best Comedy",
+        "Best Actor in Television",
+        "Best Actor in Motion Picture",
+        "Best Motion Picture Comedy or Musical",
+        "Best Supporting Actor Golden Globes",
+        "Best Actress Drama",
+        "Best Actress in a Motion Picture Drama",
+        "Best Actor in a Motion Picture Drama",
+        "Best Actor in Motion Drama",
+        "Best Motion Picture Drama",
+        "Best Director Golden Globes"
+    ],
+    "best performance by an actress in a supporting role in a series, mini-series or motion picture made for television": {
+        "Presenters": [
+            [
+                "Dennis Quaid",
+                "Actor"
+            ],
+            [
+                "Kerry Washington",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "anne hathaway",
+            "dench",
+            "hathaway",
+            "to skyfall",
+            "smith",
+            "theme to skyfall",
+            "maggie smith"
+        ],
+        "Winners": "maggie smith"
+    },
+    "best performance by an actor in a supporting role in a series, mini-series or motion picture made for television": {
+        "Presenters": [],
+        "Nominees": [
+            "unchained",
+            "change",
+            "christoph waltz",
+            "game change",
+            "waltz",
+            "en serie",
+            "ed harris"
+        ],
+        "Winners": "ed harris"
+    },
+    "best performance by an actress in a mini-series or motion picture made for television": {
+        "Presenters": [],
+        "Nominees": [
+            "waltz",
+            "lewis",
+            "tv movie",
+            "julianne moore"
+        ],
+        "Winners": "julianne moore"
+    },
+    "best performance by an actor in a mini-series or motion picture made for television": {
+        "Presenters": [],
+        "Nominees": [
+            "em",
+            "award",
+            "hatfield",
+            "kevin costner"
+        ],
+        "Winners": "kevin costner"
+    },
+    "best performance by an actress in a television series - comedy or musical": {
+        "Presenters": [],
+        "Nominees": [
+            "jennifer lawrence",
+            "girls",
+            "lena dunham",
+            "lawrence",
+            "lawrence",
+            "globes"
+        ],
+        "Winners": "lena dunham"
+    },
+    "best performance by an actress in a supporting role in a motion picture": {
+        "Presenters": [
+            [
+                "Maggie Smith",
+                "Actress"
+            ],
+            [
+                "Anne Hathaway",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "lawrence",
+            "jennifer lawrence",
+            "hugh jackman",
+            "anne hathaway"
+        ],
+        "Winners": "anne hathaway"
+    },
+    "best performance by an actor in a television series - comedy or musical": {
+        "Presenters": [],
+        "Nominees": [
+            "don cheadle",
+            "lies",
+            "hugh jackman",
+            "of lies",
+            "jackman",
+            "tarantino"
+        ],
+        "Winners": "don cheadle"
+    },
+    "best performance by an actress in a motion picture - comedy or musical": {
+        "Presenters": [
+            [
+                "Will Ferrell",
+                "Producer"
+            ],
+            [
+                "Kristen Wiig",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "les miserables",
+            "fey",
+            "miserables",
+            "tina fey",
+            "wins best",
+            "hathaway",
+            "jennifer lawrence"
+        ],
+        "Winners": "jennifer lawrence"
+    },
+    "best performance by an actor in a supporting role in a motion picture": {
+        "Presenters": [
+            [
+                "Bradley Cooper",
+                "Actor"
+            ],
+            [
+                "Kate Hudson",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "moore",
+            "winners",
+            "globe winners",
+            "christoph waltz"
+        ],
+        "Winners": "christoph waltz"
+    },
+    "best performance by an actor in a motion picture - comedy or musical": {
+        "Presenters": [],
+        "Nominees": [
+            "don cheadle",
+            "hathaway",
+            "matt leblanc",
+            "anne hathaway",
+            "cheadle",
+            "mis",
+            "hugh jackman"
+        ],
+        "Winners": "hugh jackman"
+    },
+    "best performance by an actress in a television series - drama": {
+        "Presenters": [
+            [
+                "Lea Michele",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "claire danes",
+            "homel",
+            "danes",
+            "lewis",
+            "homeland",
+            "hathaway"
+        ],
+        "Winners": "claire danes"
+    },
+    "best performance by an actor in a television series - drama": {
+        "Presenters": [],
+        "Nominees": [
+            "lewis",
+            "moore",
+            "damian lewis",
+            "homel",
+            "up a",
+            "julianne moore"
+        ],
+        "Winners": "damian lewis"
+    },
+    "best performance by an actress in a motion picture - drama": {
+        "Presenters": [
+            [
+                "Lea Michele",
+                "Actress"
+            ],
+            [
+                "Claire Danes",
+                "Actress"
+            ]
+        ],
+        "Nominees": [
+            "day",
+            "thirty",
+            "dark thirty",
+            "jessica chastain"
+        ],
+        "Winners": "jessica chastain"
+    },
+    "best performance by an actor in a motion picture - drama": {
+        "Presenters": [],
+        "Nominees": [
+            "daniel daylewis"
+        ],
+        "Winners": "daniel daylewis"
+    },
+    "best mini-series or motion picture made for television": {
+        "Presenters": [],
+        "Nominees": [
+            "golden globes",
+            "globes",
+            "harris",
+            "game change"
+        ],
+        "Winners": "game change"
+    },
+    "best television series - comedy or musical": {
+        "Presenters": [
+            [
+                "Jay Leno",
+                "Producer"
+            ],
+            [
+                "Jimmy Fallon",
+                "Writer"
+            ]
+        ],
+        "Nominees": [
+            "girls",
+            "am",
+            "for best",
+            "globes",
+            "lenadunham for best",
+            "golden globes"
+        ],
+        "Winners": "girls"
+    },
+    "best motion picture - comedy or musical": {
+        "Presenters": [
+            [
+                "Kristen Wiig",
+                "Actress"
+            ],
+            [
+                "Dustin Hoffman",
+                "Actor"
+            ]
+        ],
+        "Nominees": [
+            "jackman",
+            "hathaway",
+            "anne hathaway",
+            "les miserables"
+        ],
+        "Winners": "les miserables"
+    },
+    "best original score - motion picture": {
+        "Presenters": [
+            [
+                "Jason Statham",
+                "Actor"
+            ],
+            [
+                "Jennifer Lopez",
+                "Producer"
+            ]
+        ],
+        "Nominees": [
+            "john williams",
+            "golden globes",
+            "anne hathway on her lucky and encouraging golden globes",
+            "mychael danna"
+        ],
+        "Winners": "mychael danna"
+    },
+    "best original song - motion picture": {
+        "Presenters": [],
+        "Nominees": [
+            "adele",
+            "waltz",
+            "smith",
+            "hathaway",
+            "song",
+            "christoph waltz"
+        ],
+        "Winners": "adele"
+    },
+    "best screenplay - motion picture": {
+        "Presenters": [
+            [
+                "Robert Pattinson",
+                "Actor"
+            ],
+            [
+                "Quentin Tarantino",
+                "Writer"
+            ]
+        ],
+        "Nominees": [
+            "unchained",
+            "spielberg",
+            "quentin tarantino",
+            "steven spielberg",
+            "tarantino",
+            "lawrence"
+        ],
+        "Winners": "quentin tarantino"
+    },
+    "best director - motion picture": {
+        "Presenters": [
+            [
+                "Halle Berry",
+                "Actress"
+            ],
+            [
+                "Ben Affleck",
+                "Producer"
+            ]
+        ],
+        "Nominees": [
+            "ben affleck",
+            "argo",
+            "affleck",
+            "lo",
+            "goldenglobes",
+            "globes"
+        ],
+        "Winners": "ben affleck"
+    },
+    "best television series - drama": {
+        "Presenters": [],
+        "Nominees": [
+            "golden globes",
+            "globes",
+            "early golden globes",
+            "homeland"
+        ],
+        "Winners": "homeland"
+    },
+    "best motion picture - drama": {
+        "Presenters": [
+            [
+                "Julia Roberts",
+                "Actress"
+            ],
+            [
+                "George Clooney",
+                "Actor"
+            ]
+        ],
+        "Nominees": [
+            "wins",
+            "golden globes",
+            "wins best",
+            "at golden globes",
+            "argo",
+            "big at golden globes"
+        ],
+        "Winners": "argo"
+    },
+    "best animated feature film": {
+        "Presenters": [],
+        "Nominees": [
+            "brave",
+            "lawrence",
+            "it ralph",
+            "jennifer lawrence",
+            "ralph",
+            "globe"
+        ],
+        "Winners": "brave"
+    },
+    "best foreign language film": {
+        "Presenters": [
+            [
+                "Sylvester Stallone",
+                "Actor"
+            ]
+        ],
+        "Nominees": [
+            "'amour'",
+            "film",
+            "amour",
+            "foreign film",
+            "arnold on his",
+            "movie"
+        ],
+        "Winners": "amour"
+    },
+    "cecil b. demille award": {
+        "Presenters": [
+            [
+                "Robert Downey Jr.",
+                "Actor"
+            ]
+        ],
+        "Nominees": [
+            "demille award",
+            "drunk",
+            "award",
+            "please",
+            "honorary cecille",
+            "oscars",
+            "jodie foster"
+        ],
+        "Winners": "jodie foster"
+    }
+}
