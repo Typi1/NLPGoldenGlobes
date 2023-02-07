@@ -1,15 +1,14 @@
-'''Version 0.35'''
 import os
 import numpy as np
 import pandas as pd
 import re as reg
-import extractor
 import webscrape
 import json
 
 import findAwards
 import findNominees
-import findWinners2
+import findWinners
+import findDressed
 import findPresenters
 import findHosts
 
@@ -38,7 +37,7 @@ def get_awards(year):
     with open('results.json', 'r') as of:
         json_in = json.load(of)
 
-    awards = json_in["Awards (user generated)"]
+    awards = json_in["Awards"]
 
     return awards
 
@@ -55,7 +54,7 @@ def get_nominees(year):
     nominees = {}
 
     for award in json_in.keys():
-        if award == "Hosts" or award == "Awards (user generated)":
+        if award == "Hosts" or award == "Awards":
             continue
         nominees[award] = json_in[award]["Nominees"]
 
@@ -74,7 +73,7 @@ def get_winner(year):
     winners = {}
 
     for award in json_in.keys():
-        if award == "Hosts" or award == "Awards (user generated)":
+        if award == "Hosts" or award == "Awards":
             continue
         winners[award] = json_in[award]["Winner"]
 
@@ -93,7 +92,7 @@ def get_presenters(year):
     presenters = {}
 
     for award in json_in.keys():
-        if award == "Hosts" or award == "Awards (user generated)":
+        if award == "Hosts" or award == "Awards":
             continue
         presenters[award] = json_in[award]["Presenters"]
 
@@ -128,12 +127,16 @@ def main():
     pandaf = pd.read_json(p)
 
     hosts = findHosts.findHosts(pandaf)
-    # hosts = findHosts.findHosts(pandaf)
+    dress = findDressed.findDressed(pandaf)
 
     awards = findAwards.findAwa()
 
+    # print(awards)
+    
+
     win_seen = {}
     list_seen = {}
+    ws_seen = {}
     nom_seen = {}
     pres_seen = {}
 
@@ -145,31 +148,37 @@ def main():
 
     sorted_awards.sort(key=lambda x: len(x), reverse=True)
 
-    print(sorted_awards)
+    # print(sorted_awards)
 
-    large_input = {"Hosts": hosts, "Awards (user generated)": awards}
+    large_input = {"Hosts": hosts, "Awards": awards}
 
     for award_off in sorted_awards:
-        (temp_win, win_seen) = findWinners2.findWins(pandaf, award_off, 0, True, 3, win_seen)
-        winners[award_off] = temp_win
-        print(temp_win)
-        (temp_nom, nom_seen, list_seen) = findNominees(pandaf, award_off, 0, False, 3, nom_seen, list_seen, temp_win)
+        (temp_win, win_seen) = findWinners.findWins(pandaf, award_off, 0, True, 3, win_seen)
+        winners[award_off] = temp_win.title()
+        # print(temp_win)
+        (temp_nom, nom_seen, list_seen, ws_seen) = findNominees.findNominees(pandaf, award_off, 0, False, 3, nom_seen, list_seen, temp_win.title(), ws_seen)
         nominees[award_off] = temp_nom
         (temp_pres, pres_seen) = findPresenters.findPres(pandaf, award_off, 3, pres_seen)
-        presenters[award_off] = temp_pres[0]
-        large_input[award_off] = {"Presenters": temp_pres, "Nominees": temp_nom, "Winner": temp_win}
+        temp_temp_pres = []
+        for ii in temp_pres:
+            temp_temp_pres.append(ii)
+        presenters[award_off] = temp_temp_pres
+        large_input[award_off] = {"Presenters": temp_pres, "Nominees": temp_nom, "Winner": temp_win.title()}
 
-    print(hosts)
-    print(awards)
-    print(presenters)
-    print(nominees)
-    print(winners)
+    # print(hosts)
+    # print(awards) 
+    # print(presenters)
+    # print(nominees)
+    # print(winners)
+    print(ws_seen)
 
     jsonF = json.dumps(large_input, indent=4)
 
     with open("results.json", "w") as of:
         of.write(jsonF)
 
+
+    # human readable output: 
     print("Hosts: ")
     for ii in hosts:
         print("\t"+ii)
@@ -179,16 +188,19 @@ def main():
         print("\t" + ii)
 
     for ii in sorted_awards:
-        print("Award: " + ii)
+        print("\nAward: " + ii)
         print("\tPresenters: ")
         for jj in presenters[ii]:
-            print("\t"+jj)
+            print("\t\t"+jj)
         print("\tNominees: ")
         for jj in nominees[ii]:
-            print("\t"+jj)
+            print("\t\t"+jj)
         print("\tWinner: " + winners[ii])
 
-    
+    print("\nBest Dressed: ")
+    print("\t"+dress[0])
+    print("Worst Dressed: ")
+    print("\t"+dress[1])
 
     return
 
