@@ -152,6 +152,26 @@ def isSubstring(s: str, noms: list):
     return any(s in x for x in noms)
 
 
+def addPermutations(s:str, ws, ws_seen):
+    wrds = reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", s)
+    if ws == None or ws[0] == None: return ws_seen
+    if ws_seen == None: ws_seen = {}
+    # print(wrds)
+    for x in range(len(wrds)):
+        temp = reg.search("((?:\w+\!*\-*\:*\.*\,*\(*\)*\s*){" + str(x) + "})",s)
+        # print(temp)
+        if temp != None and temp.group(1) != "" and temp.group(1).lstrip().rstrip() != None and not isCommon(temp.group(1)):
+            ws_seen[temp.group(1).lstrip().rstrip()] = ws[0]
+    for x in range(len(wrds)):
+        if(x == 0): continue
+        temp = reg.search("(?:\w+\!*\-*\:*\.*\,*\(*\)*\s*){" + str(x) + "}((?:\w+\!*\-*\:*\.*\,*\(*\)*\s*)*)",s)
+        # print(temp.group(1))
+        if temp != None and temp.group(1) != "" and temp.group(1).lstrip().rstrip() != None and not isCommon(temp.group(1)):
+            ws_seen[temp.group(1).lstrip().rstrip()] = ws[0]
+
+    return ws_seen
+
+
 def compileNominees(candidates: list, year: Optional[int] = 0, winner: Optional[str] = None, ws_seen: Optional[dict] = {}):
 
     # get the winner type
@@ -189,6 +209,8 @@ def compileNominees(candidates: list, year: Optional[int] = 0, winner: Optional[
     # print(list_noms)
 
     # print("webscraping")
+
+    
     
     # if the type is actor, actress, or person
     if nom_type != "content":
@@ -206,6 +228,7 @@ def compileNominees(candidates: list, year: Optional[int] = 0, winner: Optional[
                     ws1 = webscrape.imdb_type_check(candidates[i][0], 0)
                     # ws1 = getWSResults(candidates[i][0], year)
                     ws_seen[candidates[i][0]] = ws1
+                    ws_seen = addPermutations(candidates[i][0], ws1, ws_seen)
                 # if we have seen it already, just access its value from ws_seen
                 else:
                     ws1 = ws_seen[candidates[i][0]]
@@ -248,6 +271,7 @@ def compileNominees(candidates: list, year: Optional[int] = 0, winner: Optional[
                     ws1 = webscrape.imdb_type_check(candidates[i][0], 0)
                     # ws1 = getWSResults(candidates[i][0], year)
                     ws_seen[candidates[i][0]] = ws1
+                    ws_seen = addPermutations(candidates[i][0], ws1, ws_seen)
                 else:
                     ws1 = ws_seen[candidates[i][0]]
                 # ws1 = webscrape.imdb_type_check(reg_noms[i][0], year)
@@ -271,6 +295,7 @@ def compileNominees(candidates: list, year: Optional[int] = 0, winner: Optional[
         nominees_ws.append(winner.title())
 
     return (nominees_ws, ws_seen)
+
 
 # check regexes for the times between the first quartile and third quartile of tweets announcing a winner for the award
 def check_Q1_to_Q3(pandaf, rtOn: bool = False, quartiles: list = None, winner: str = "", ws_seen: Optional[dict] = None):
