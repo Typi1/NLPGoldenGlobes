@@ -6,7 +6,7 @@ import webscrape
 import json
 
 import findAwards
-import findNominees
+import findNominees3
 import findWinners
 import findDressed
 import findPresenters
@@ -135,9 +135,7 @@ def main():
     
 
     win_seen = {}
-    list_seen = {}
     ws_seen = {}
-    nom_seen = {}
     pres_seen = {}
 
     winners = {}
@@ -156,7 +154,7 @@ def main():
         (temp_win, win_seen) = findWinners.findWins(pandaf, award_off, 0, True, 3, win_seen)
         winners[award_off] = temp_win.title()
         # print(temp_win)
-        (temp_nom, nom_seen, list_seen, ws_seen) = findNominees.findNominees(pandaf, award_off, 0, False, 3, nom_seen, list_seen, temp_win.title(), ws_seen)
+        (temp_nom, ws_seen) = findNominees3.getNominees(pandaf, temp_win, ws_seen)
         nominees[award_off] = temp_nom
         (temp_pres, pres_seen) = findPresenters.findPres(pandaf, award_off, 3, pres_seen)
         temp_temp_pres = []
