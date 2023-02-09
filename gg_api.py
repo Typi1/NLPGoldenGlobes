@@ -6,7 +6,7 @@ import webscrape
 import json
 
 import findAwards
-import findNominees3
+import findNominees
 import findWinners
 import findDressed
 import findPresenters
@@ -125,17 +125,19 @@ def main():
     # read the dataset
     p = "gg2013.json"
     pandaf = pd.read_json(p)
-
+    # print(pandaf)
     hosts = findHosts.findHosts(pandaf)
     dress = findDressed.findDressed(pandaf)
 
-    awards = findAwards.findAwa()
+    awards = findAwards.findAwa(p)
 
     # print(awards)
     
 
     win_seen = {}
+    list_seen = {}
     ws_seen = {}
+    nom_seen = {}
     pres_seen = {}
 
     winners = {}
@@ -154,9 +156,9 @@ def main():
         (temp_win, win_seen) = findWinners.findWins(pandaf, award_off, 0, True, 3, win_seen)
         winners[award_off] = temp_win.title()
         # print(temp_win)
-        (temp_nom, ws_seen) = findNominees3.getNominees(pandaf, temp_win, ws_seen)
+        (temp_nom, ws_seen) = findNominees.getNominees(pandaf, temp_win, ws_seen, award_off)
         nominees[award_off] = temp_nom
-        (temp_pres, pres_seen) = findPresenters.findPres(pandaf, award_off, 3, pres_seen)
+        temp_pres = findPresenters.findPres(pandaf, award_off, 3)
         temp_temp_pres = []
         for ii in temp_pres:
             temp_temp_pres.append(ii)
@@ -168,7 +170,7 @@ def main():
     # print(presenters)
     # print(nominees)
     # print(winners)
-    print(ws_seen)
+    # print(ws_seen)
 
     jsonF = json.dumps(large_input, indent=4)
 

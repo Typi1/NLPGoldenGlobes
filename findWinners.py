@@ -3,11 +3,12 @@ import os
 import numpy as np
 import pandas as pd
 import re as reg
-import extractor
 import webscrape
 from typing import Optional
 
-def doProcessing(s, win_candidates, reverse: bool):
+# Made by Ethan
+
+def doProcessing(s, win_candidates, reverse: bool): # X presents ... ___ is presented by X robert downey jr in amazing style
     # if there is something captured
     #print(s)
     # print(win_candidates)
@@ -16,7 +17,7 @@ def doProcessing(s, win_candidates, reverse: bool):
         og_phrase = s.group(1).lower() # the phrase with consistent capitalization (lowercase)
         #print("OG: " + og_phrase)
         for i in range(num_wrds): # for each x words of the phrase (ex: for phrase "this is good" -> "this is good", "is good", "good")
-            if reverse:
+            if reverse: 
                 if(num_wrds - i not in win_candidates.keys()): # if there isn't a dictionary key for this # of words, add an entry corresponding to it
                     win_candidates[num_wrds - i] = {}
                 search_res = reg.search("(?:\w+\s+){" + str(i) + "}(\w+)*", og_phrase)
@@ -49,20 +50,27 @@ def doProcessing(s, win_candidates, reverse: bool):
             #print(num_wrds - i)
     return
 
-def findWins(pandaf, curr_event, num, rtOn: bool = True, keyword_char_limit: int = 3, seen: Optional[dict] = None):
+# pandaf is the json data
+# curr_event is the extractor file stuff
+# num refers to the index of the award we are looking at (in curr_event)
+# rtOn is a flag to determine whether retweets are counted
+# keyword_char_limit is the minimum # of characters for a keyword to count
+# seen is a list of indices for tweets that we can ignore bc they were used to find a different answer
+def findWins(pandaf, award_name, num, rtOn: bool = True, keyword_char_limit: int = 3, seen: Optional[dict] = None):
 
     
 
     #print(events['event_nom'])
 
+    
     win_candidates = {}
 
     
-    curr_award = curr_event.awards[list(curr_event.awards.keys())[num]]
-    print(curr_award)
+    curr_award = award_name
+    # print(curr_award)
 
     # get a list of words to search for from the award name
-    keywords = reg.findall("\w{"+ str(keyword_char_limit) +"}\w+", curr_award.name.lower().replace("-", ""))
+    keywords = reg.findall("\w{"+ str(keyword_char_limit) +"}\w+", curr_award.lower().replace("-", ""))
     # print(keywords)
 
     # some keywords that are best to ignore since they are usually omitted
@@ -92,8 +100,10 @@ def findWins(pandaf, curr_event, num, rtOn: bool = True, keyword_char_limit: int
 
     # print(exclude_list)
 
+    # runs through every tweet
     for i in range(pandaf.shape[0]):
 
+        # ignore tweets that we've used already for the winners of other awards
         if(seen != None and i in seen):
             #if i % 1000 == 0: print(i)
             continue
@@ -121,15 +131,13 @@ def findWins(pandaf, curr_event, num, rtOn: bool = True, keyword_char_limit: int
                 keyword_results.append(reg.search("(?:^|\s+|-|/)" + j + "(?:\s+|-|/|$)", curr_text.lower()))
         
         
-        # win_find2 = reg.search("[sS]eries", curr_text) # if we know award name OR nominee type (series)
-        # win_find3 = reg.search("[dD]rama", curr_text) # if we know award name
-        # win_find4 = reg.search("[aA]ctress", curr_text) # if we know nominee type (not person)
-        # win_find5 = reg.search("[aA]ctor", curr_text) # if we know nominee type (not person)
         win_find6 = reg.search("i\s+hope", curr_text.lower())
         win_find7 = reg.search("i\s+wish", curr_text.lower())
         win_find8 = reg.search("i\s+predict", curr_text.lower())
         win_find9 = reg.search("if\s+(?:\w+\s+)+wins", curr_text.lower())
+        
         win_find10 = reg.search("^(?:RT)", curr_text)
+
         win_find11 = reg.search("\s+[wW]on\s+", curr_text)
         win_find12 = reg.search("\s+has\s+[wW]on\s+", curr_text)
 
@@ -188,62 +196,31 @@ def findWins(pandaf, curr_event, num, rtOn: bool = True, keyword_char_limit: int
     
 
     if(votes != {}):
-        temp = max(votes, key = votes.get)
-        if temp != None: print(temp)
+        # temp = max(votes, key = votes.get)
+        # if temp != None: print(temp)
+        
+        ws2 = max(votes, key = votes.get)
+        ws = webscrape.imdb_type_check(ws2, year)
 
-        ws = webscrape.imdb_type_check(max(votes, key = votes.get), year)
     # if there is some weirdness, try turning off retweets
     if ((votes == {} or ws == None) and rtOn and keyword_char_limit == 3):
-        (ws, new_seen) = findWins(pandaf, curr_event, num, False, 3, seen)
+        (ws2, new_seen) = findWins(pandaf, award_name, num, False, 3, seen)
     elif ((votes == {} or ws == None) and not rtOn and keyword_char_limit == 3):
-        (ws, new_seen) = findWins(pandaf, curr_event, num, True, 4, seen)
+        (ws2, new_seen) = findWins(pandaf, award_name, num, True, 4, seen)
     elif ((votes == {} or ws == None) and rtOn and keyword_char_limit == 4):
-        (ws, new_seen) = findWins(pandaf, curr_event, num, False, 4, seen)
+        (ws2, new_seen) = findWins(pandaf, award_name, num, False, 4, seen)
         
     
 
     # some backup for if the strings still left have extraneous stuff at the start and there are ties. 3-2 is for common string lengths of people names, 1 is for worst case scenario
-    if ws == None and 3 in win_candidates.keys():
-        ws = webscrape.imdb_type_check(max(win_candidates[3], key = win_candidates[3].get), year)
-    if ws == None and 2 in win_candidates.keys():
-        ws = webscrape.imdb_type_check(max(win_candidates[2], key = win_candidates[2].get), year)
-    if ws == None and 1 in win_candidates.keys():
-        ws = webscrape.imdb_type_check(max(win_candidates[1], key = win_candidates[1].get), year)
+    # if ws == None and 3 in win_candidates.keys():
+    #     ws2 = max(win_candidates[3], key = win_candidates[3].get)
+    # if ws == None and 2 in win_candidates.keys():
+    #     ws2 = max(win_candidates[2], key = win_candidates[2].get)
+    # if ws == None and 1 in win_candidates.keys():
+    #     ws2 = max(win_candidates[1], key = win_candidates[1].get)
 
     if(votes == {} and seen != {} and ws == None):
-        (ws, _) = findWins(pandaf, curr_event, num, True, 3, {})
+        (ws2, _) = findWins(pandaf, award_name, num, True, 3, {})
 
-    return (ws, new_seen)
-
-def main():
-    # get the json twitter info
-    p = os.path.dirname(os.path.realpath(__file__)) + r"\gg2013.json"
-
-    pandaf = pd.read_json(p)
-    #print("number of data entries: " + str(pandaf.shape[0]))
-    #print(pandaf['text'][0]) # get the nth text entry
-    #print(pandaf['timestamp_ms'][0]) # get the nth timestamp
-
-    # get the extractor data structures up to the nominees data level
-
-    parameters = extractor.load_json(os.path.dirname(os.path.realpath(__file__)) + r"\gg2013answers.json")
-    events = extractor.input_parameters(parameters)
-
-    curr_event = events['event_nom']
-
-    award_names = list((list(curr_event.awards.keys())[x], x) for x in range(len(curr_event.awards.keys())))
-
-    award_names.sort(key=lambda x: len(x[0]), reverse=True)
-
-    #rint(award_names)
-
-    seen = {}
-    # (_, seen) = findWins(pandaf, curr_event, 4, True, 3, seen)
-    # print(findWins(pandaf, curr_event, 20, True, 3, seen)[0])
-    for i in award_names:#range(len(curr_event.awards.keys())):
-        print("Award #" + str(i[1]) + ":")
-        (temp, seen) = findWins(pandaf, curr_event, i[1], True, 3, seen)
-        print(temp)
-
-if __name__ == '__main__':
-    main()
+    return (ws2, new_seen)

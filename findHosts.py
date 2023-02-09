@@ -6,12 +6,12 @@ import spacy
 import truecase
 import nltk
 import re as reg
-import extractor
-import webscrape
 from typing import Optional
 
 nltk.download('punkt')
 nlp = spacy.load("en_core_web_sm")
+
+# made by Sean
 
 def doProcessing(s, hos_candidates):
     # if there is something captured
@@ -53,27 +53,16 @@ def findHosts(pandaf):
     ws = []
     if(hos_candidates != {}):
         
-        print(hos_candidates)
+        # print(hos_candidates)
         temp = max(hos_candidates, key = hos_candidates.get)
-        if temp != None: 
-            print(temp)
+        # if temp != None: 
+            # print(temp)
         ws.append(temp)
         del hos_candidates[max(hos_candidates, key=hos_candidates.get)]
         if hos_candidates != {}:
             sec_temp = max(hos_candidates, key = hos_candidates.get)
-            if sec_temp != None: 
-                print(sec_temp)
+            # if sec_temp != None: 
+                # print(sec_temp)
             ws.append(sec_temp)
             
     return ws
-
-def main():
-    # get the json twitter info
-    p = os.path.dirname(os.path.realpath(__file__)) + r"/gg2013.json"
-
-    pandaf = pd.read_json(p)
-    temp = findHosts(pandaf)
-    print(temp)
-
-if __name__ == '__main__':
-    main()

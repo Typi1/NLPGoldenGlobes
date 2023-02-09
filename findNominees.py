@@ -1,41 +1,36 @@
-import json
 import os
 import numpy as np
 import pandas as pd
 import re as reg
 import webscrape
-import findWinners
 from typing import Optional
+import statistics
 
-# made by Ethan
+# Made by Ethan
 
-# adds all relevant permutations of the capture group to the candidates dictionary along with the voting weight associated with the string
-# it also groups permutations by the # of words in the string
-# for example, the string "this is test" would lead to key-value pair candidates[3]["this is test"] += weight (= instead of += if "this is test" is not already a key)
-# s is the search result
-# candidates is a dictionary of dictionaries. the dictionary-typed values contain key-value pairs corresponding to strings of the same # of words. the values of said dictionaries have keys that are strings and values that are the accumulated weighted vote (before post-processing)
-# reverse is a bool that specifies the direction in which strings are decomposed ex: if reverse, "i l y" -> {"i l y", "l y", "y"}. if not reverse, "i l y" -> {"i l y", "i l", "i"}
-# weight is a float that gives the weighting of the votes (before taking into account length or other factors in post-processing of results)
-def doProcessing(s, candidates, reverse: bool, weight: float): # reverse specifies the direction in which strings are decomposed ex: if reverse, "i l y" -> {"i l y", "l y", "y"}. if not reverse, "i l y" -> {"i l y", "i l", "i"}
+def doProcessing2(s, candidates, reverse: bool, weight: float = 1): # reverse specifies the direction in which strings are decomposed ex: if reverse, "i l y" -> {"i l y", "l y", "y"}. if not reverse, "i l y" -> {"i l y", "i l", "i"}
     # if there is something captured
     # print(s)
     # print(candidates)
     if(s != None and s.group(1) != None):
-        num_wrds = len(reg.findall("(?:'|\*|\w)+", s.group(1))) # the number of words in the phrase captured
+        num_wrds = len(reg.findall("(?:'|\*|\w|\-)+", s.group(1))) # the number of words in the phrase captured
         #print(reg.findall("(?:'|\w)+", s.group(1)))
         og_phrase = s.group(1) # the phrase with consistent capitalization (lowercase)
+        if not reverse:
+            og_phrase = og_phrase + " a"
+            num_wrds += 1
         # print("OG: " + og_phrase)
         # print(num_wrds)
         for i in range(num_wrds): # for each x words of the phrase (ex: for phrase "this is good" -> "this is good", "is good", "good")
             if reverse:
                 if(num_wrds - i not in candidates.keys()): # if there isn't a dictionary key for this # of words, add an entry corresponding to it
                     candidates[num_wrds - i] = {}
-                search_res = reg.search("(?:(?:'|\*|\w)+\s+){" + str(i) + "}((?:'|\*|\w)+)*", og_phrase)
+                search_res = reg.search("(?:(?:'|\*|\w|\-)+\s+){" + str(i) + "}((?:'|\*|\w|\-)+)*", og_phrase)
             else:
                 i += 0
                 if(i not in candidates.keys()): # if there isn't a dictionary key for this # of words, add an entry corresponding to it
                     candidates[i] = {}
-                search_res = reg.search("((?:(?:'|\*|\w)+\s+){" + str(i) + "})", og_phrase)
+                search_res = reg.search("((?:(?:'|\*|\w|\-)+\s+){" + str(i) + "})", og_phrase)
 
             gr = ""
 
@@ -64,36 +59,72 @@ def doProcessing(s, candidates, reverse: bool, weight: float): # reverse specifi
             #print(search_res)
 
             #print(num_wrds - i)
-    return
+    # if "weaver" in s.string.lower(): 
+    #     print(s.string.lower())
+    #     print(candidates[2])
+    return candidates
 
+# if a winner string doesn't give a match in imdb, try adding spaces in it, starting from the end to the beginning (last names are more likely to have hyphens than first names)
+def trySpaces(s: str, year, n_type):
+    if(len(s) < 1):
+        return None
+    ws = None
+    for ii in reversed(range(len(s))):
+        if(ii == 0):
+            continue
+        if s[ii] != " " and s[ii-1] != " ":
+            # print(s[ii])
+            test_str = s[:ii] + " " + s[ii:]
+            ws = webscrape.imdb_type_check(test_str, year, n_type)
+        if ws != None: break
+    return ws
 
-# returns a proportion of keywords in the given string if that string is acceptable given a list of keywords and a threshold proportion (0 <= 1) of keywords that need to be included
-# in simpler terms, if the proportion is less than the threshold, return 0. Return the actual proportion value otherwise.
-# This proportion value can be used to weigh votes (strings with higher amounts of keywords matched have higher weighted votes)
-# s is the string
-# keywords is a list of strings (keywords to look for in the string s)
-# threshold is the minimum proportion of keywords that need to be in s for this to return a nonzero value
-def judgeKeywords(s: str, keywords: list, threshold: float):
-    if threshold < 0 or threshold > 1:
-        return 0
+# get the quartiles of timestamps of appearances of the target string in tweets
+def getQTS(pandaf, target_str: str, rtOn: bool = False):
+    times = []
+    # runs through every tweet
+    for i in range(pandaf.shape[0]):
+        curr_text = pandaf['text'][i].lower()
+        curr_text = curr_text.replace("\"", "")
+        curr_text = curr_text.replace("“", " u201c ")
+        curr_text = curr_text.replace("”", " u201c ")
+        # curr_text = curr_text.replace("-", "")
+        curr_text = curr_text.replace("#", "")
+        curr_text = curr_text.replace("’", " u201c ")
+        curr_text = curr_text.replace("‘", " u201c ")
+
+        if not rtOn:
+            rt = reg.search("^(?:[rR][tT])\s+", curr_text) # reg.search("\s+(?:rt)\s+", curr_text)
+            if rt == None:
+                rt = reg.search("\s+(?:rt)\s+", curr_text)
+            if rt == None and "u201c" in curr_text:
+                rt = "not None"
+
+        if not rtOn and rt != None:
+            # if new_seen == None:
+            #     new_seen = {}
+            # new_seen[i] = curr_text
+            continue
+
+        if target_str.lower() in curr_text:
+            times.append(pandaf['timestamp_ms'][i].value)
+
+    qts = []
+    if(len(times) >= 2): qts = statistics.quantiles(times)
+    elif(len(times) == 1): qts = [times[0]]
+
+    return qts
     
-    prop = 0
-    for x in keywords:
-        if x in s:
-            prop += 1.0
+# returns true if string is only made of common words
+def isCommon(s:str):
+    common_wrds = ["i", "it", "is", "st", "you", "u", "blah", "of", "the", "if", "what", "why", "to", "a", "an", "are", "for", "that", "its", "do", "can", "those", "these", "win", "but", "in", "out", "or", "tv", "series", "on", "ugh", "this", "go", "wow", "duh", "um", "she", "he", "her", "hers", "his", "well", "just", "really", "totally", "so", "and", "someone", "somebody", "again", "good", "bad"]
+    wrds = reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", s)
+    return all((x.lower().lstrip().rstrip() in common_wrds) for x in wrds)
 
-    prop /= float(len(keywords))
-
-    if prop < threshold: prop = 0
-
-    return prop
-
-# takes a string and attempts a regex search on it.
-# if there is a match, add it to the nom_results dict and then check the rest of the string for the same match until no matches are found, then return nom_results
 def getMatches(s:str, nom_results:dict, num:int, rex:str, justremove: bool, shorthand:str = ""):
     # print(rex)
     # way to speed up output by making not all text strings need to go through regex searches
-    if shorthand != "" and not shorthand in s:
+    if shorthand != "" and not shorthand in s.lower():
         return nom_results
     # print(s)
     nom_results[num] = reg.search(rex, s)
@@ -107,215 +138,69 @@ def getMatches(s:str, nom_results:dict, num:int, rex:str, justremove: bool, shor
 
     return nom_results
 
-# # returns a list of strings from a pandas json read which match any of the regex checks inside
-# def getRelevantStr(pandaf):
-
-# returns a votes dictionary for different parts of lists including some target string(s)
-def getLists(pandaf, curr_award, targets: list, rtOn: bool = False, list_seen: Optional[dict] = None):
-    list_candidates = {}
-    # loop through each tweet that isn't in seen (seen should be different than the main one used in findNominees)
-    for i in range(pandaf.shape[0]):
-        if list_seen != None and i in list_seen:
-            continue
-
-        curr_text = pandaf['text'][i]
-        curr_text = curr_text.replace("“", "u201c")
-        curr_text = curr_text.replace("”", "u201c")
-        curr_text = curr_text.replace("’", "'")
-        curr_text = curr_text.replace("‘", "'")
-
-        if (not "," in curr_text) and (not "and" in curr_text):
-            if list_seen == None: list_seen = {}
-            list_seen[i] = curr_text
-            continue
-
-        rt = reg.search("^(?:rt)\s+", curr_text) # reg.search("\s+(?:rt)\s+", curr_text)
-        if rt == None:
-            rt = reg.search("\s+(?:rt)\s+", curr_text)
-        if rt == None and "u201c" in curr_text:
-            rt = "not None"
-
-        if not rtOn and rt != None:
-            continue
-
-        list_find = {}
-
-        # search for each target in the tweet
-        for j in range(len(targets)):
-            # if target string targets[j] is in the tweet, then run list comprehension
-            if(targets[j] in curr_text):
-                # list_find = getMatches(curr_text, list_find, j*100 + 0, str("(['\w+\s*]*),\s*" + targets[j]))
-                list_find = getMatches(curr_text, list_find, j*100 + 0, "(['\w+\s*]*)(?:,\s*(?:\w+\s+)*)+" + reg.escape(targets[j]), True, targets[j]) # reverse
-                list_find = getMatches(curr_text, list_find, j*100 + 1, reg.escape(targets[j]) + "(?:,\s*(?:\w+\s+)*?)+(['\w+\s*]*)", True, targets[j]) # reverse
-                list_find = getMatches(curr_text, list_find, j*100 + 2, "(?:and)*(['\w+\s*]*?)(?:and\s*(?:\w+\s+)*?)+(?=" + reg.escape(targets[j]) + ")", True, targets[j]) # reverse
-                list_find = getMatches(curr_text, list_find, j*100 + 3, "(?<=" + reg.escape(targets[j]) + ")\s*(?:and\s*(?:\w+\s+)*)+(?<=and)(['\w+\s*]+)", True, targets[j]) # no reverse
-    
-        # for each regex search criteria for a nominee (ex: X should have won)
-        for x in list_find.keys():
-            temp_ele = list_find[x]
-            # if that expression was matched in the sentence, 
-            if temp_ele != None:
-                
-                # print(temp_ele.string)
-
-                if list_seen == None: list_seen = {}
-                list_seen[i] = curr_text
-
-                # add the possible permutations of the following string to the nominee candidates using doProcessing, so that one of them should be the result
-                rev = True
-                match x % 100:
-                    case 1 | 2 | 3 :
-                        rev = True
-                    case 4: 
-                        rev = False
-                        if "and" in temp_ele:
-                            noAndEnd = reg.search("(['\w+\s*]+)and$", temp_ele)
-                            if noAndEnd != None:
-                                temp_ele = noAndEnd.group(1).rstrip()
-                        
-                doProcessing(temp_ele, list_candidates, rev, 0.5)
-                # print(temp_ele)
-
-    return list_candidates
-
-
-def toVotes(candidates: dict):
-    votes = {}
-    unres_votes = {}
-    # i is the # of words in the string
-    temp_keys = list(candidates.keys())
-    temp_keys.sort(key=lambda x: x, reverse=True)
-
-    common_wrds = ["i", "it", "is", "st", "you", "u", "blah", "of", "if", "what", "why", "to", "a", "an"]
-
-    for i in temp_keys:
-        multiplier = 1.0
-        
-        # if a string is a single word, weigh it less (mainly accounts for person names)
-        if(i == 1):
-            multiplier = 1
-        # j is an actual key of string to weighted vote
-        for j in candidates[i].keys():
-            residual = 0
-
-            for superstring in votes.keys():
-                # print(j)
-                superstring = superstring
-                # print(superstring)
-                if (j in superstring): # and reg.search("(?:^|\s)" + reg.escape(j) + "[\s\.,':;\-!?]*$", superstring) != None:
-                    residual += unres_votes[superstring]
-                    unres_votes[superstring] /= 5
-                    
-
-            if (not "http" in j and not j in votes and not any(j == hh for hh in common_wrds) and candidates[i][j]):
-                votes[j] = (candidates[i][j] + residual) * multiplier 
-                unres_votes[j] = candidates[i][j] * multiplier 
-
-    ws = None
-
-    votes_list = []
-
-    if(votes != {}):
-        if("" in votes.keys()):
-            votes[""] = 0
-
-        # temp = max(votes, key = votes.get)
-        # if temp != None: print(temp)
-
-        votes_list = list(votes.items())
-        votes_list.sort(key=(lambda x: x[1]), reverse=True)
-        # print("votes ranking: " + str(votes_list))
-
-        ws = max(votes, key = votes.get)
-    
-    return (ws, votes_list)
-
-def getWSResults(target: str, year: Optional[int] = None):
+def getWSResults(target: str, n_type, year: Optional[int] = None):
     ws = None
     if year != None:
-        ws = webscrape.imdb_type_check(target, year)
+        ws = webscrape.imdb_type_check(target, year, n_type)
     else:
-        ws = webscrape.imdb_type_check(target, 0)
+        ws = webscrape.imdb_type_check(target, 0, n_type)
     return ws
 
-# reg_noms and list_noms are lists with names to weighted votes (name, weighted votes) in order of most to least
-# takes the set of potential nominees determined by the ton of regexes and the set of potential nominees in lists with the top nominee from before
-# and combines them to give the top few most likely nominees
-def compileNominees(reg_noms: list, list_noms: list, year: Optional[int] = 0, winner: Optional[str] = None, ws_seen: Optional[dict] = {}):
+# returns boolean of whether s is a substring of a nominee in the list
+def isSubstring(s: str, noms: list):
+    return any(s in x for x in noms)
 
-    winner_ws = getWSResults(winner, year)
+
+def addPermutations(s:str, ws, ws_seen):
+    wrds = reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", s)
+    if ws == None or ws[0] == None: return ws_seen
+    if ws_seen == None: ws_seen = {}
+    # print(wrds)
+    for x in range(len(wrds)):
+        temp = reg.search("((?:\w+\!*\-*\:*\.*\,*\(*\)*\s*){" + str(x) + "})",s)
+        # print(temp)
+        if temp != None and temp.group(1) != "" and temp.group(1).lstrip().rstrip() != None and not isCommon(temp.group(1)):
+            ws_seen[temp.group(1).lstrip().rstrip()] = ws[0]
+    for x in range(len(wrds)):
+        if(x == 0): continue
+        temp = reg.search("(?:\w+\!*\-*\:*\.*\,*\(*\)*\s*){" + str(x) + "}((?:\w+\!*\-*\:*\.*\,*\(*\)*\s*)*)",s)
+        # print(temp.group(1))
+        if temp != None and temp.group(1) != "" and temp.group(1).lstrip().rstrip() != None and not isCommon(temp.group(1)):
+            ws_seen[temp.group(1).lstrip().rstrip()] = ws[0]
+
+    return ws_seen
+
+
+def compileNominees(candidates: list, n_type, year: Optional[int] = 0, winner: Optional[str] = None, ws_seen: Optional[dict] = {}):
+    # print(winner)
+    # get the winner type
+    winner_ws = getWSResults(winner, 0, year)
+    if winner_ws == None:
+        winner_ws = trySpaces(winner, year, 0)
     
 
     nom_type = winner_ws[1]
 
+    # determine the type that nominees must be: content, person, actor, or actress
+    # content-types cannot win for person, actor, or actress typed awards
+    # person-types cannot win for content, actor, or actress typed awards
+    # actor-types cannot win for content or actress typed awards. They can win for person typed awards though.
+    # actress-types cannot win for content or actor typed awards. They can win for person typed awards though.
     if type(nom_type) == list:
         nom_type = "content"
-    elif nom_type != "Actor" and nom_type != "Actor":
+    elif nom_type != "Actor" and nom_type != "Actress":
         nom_type = "person"
 
     ws_seen[winner] = (winner_ws[0], nom_type)
 
-    common_wrds = ["I", "It", "Is", "St", "You", "U", "Blah", "Of", "The", "If", "what", "why", "to", "a", "an", "are", "for", "that", "its", "do", "can", "those", "these", "win", "but", "in", "or", "tv", "series", "on", "serie", "ugh", "this", "go", "Wow", "Duh", "Um"]
-
-    # print("keymatching... pt1")
-
-    reg_noms_person = reg_noms.copy()
-    list_noms_person = list_noms.copy()
-
-    # first, filter out stupid results from the lists: ie stuff only made up of common words
-    for x in reg_noms.copy():
-        num_wrds = 0
-        counter = 0
-        if len(x[0]) > 1:
-            # if not x in reg_noms: continue
-            wrds = reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", x[0])
-            for y in wrds:
-                if not y[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789":
-                    reg_noms.remove(x)
-                    reg_noms_person.remove(x)
-                    wrds = 0
-                    break
-            
-            if wrds == 0: continue
-            num_wrds = len(wrds)
-            for y in common_wrds:
-                counter += len(reg.findall("(?=(?<!\w)(" + y.title() + ")(?:\W|$))", x[0].replace("'","")))
-        if len(x[0]) <= 1 or counter >= num_wrds:
-            reg_noms.remove(x)
-            
-        if len(x[0]) <= 1 or counter > 0:
-            reg_noms_person.remove(x)
-
-    # print("keymatching... pt2")
-
-    for x in list_noms.copy():
-        num_wrds = 0
-        counter = 0
-        if len(x[0]) > 1:
-            # if not x in list_noms: continue
-            wrds = reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", x[0])
-            for y in wrds:
-                if not y[0] in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789":
-                    list_noms.remove(x)
-                    list_noms_person.remove(x)
-                    wrds = 0
-                    break
-            
-            if wrds == 0: continue
-            num_wrds = len(wrds)
-            for y in common_wrds:
-                counter += len(reg.findall("(?=(?<!\w)(" + y + ")(?:\W|$))", x[0].replace("'","")))
-        if len(x[0]) <= 1 or counter >= num_wrds:
-            list_noms.remove(x)
-        if len(x[0]) <= 1 or counter > 0:
-            list_noms_person.remove(x)
-    # print(reg_noms)
-
     # nominees = []
     nominees_ws = []
 
-    max_noms = 3
-    max_search_depth = 12
+    if winner != None and not winner in nominees_ws:
+        nominees_ws.append(winner.title())
+
+    max_noms = 4
+    max_search_depth = 10
 
     counter2 = 0
 
@@ -323,175 +208,111 @@ def compileNominees(reg_noms: list, list_noms: list, year: Optional[int] = 0, wi
     # print(list_noms)
 
     # print("webscraping")
-    if True:
-        if nom_type != "content":
-            for i in range(max(len(reg_noms_person), len(list_noms_person))):
-                # print(reg_noms[i][0])
-                # print(year)
 
-                # nom_type != "content" and nom_type == ws1[1])
+    
+    
+    # if the type is actor, actress, or person
+    if nom_type != "content":
+        for i in range(len(candidates)):
+            # print(reg_noms[i][0])
+            # print(year)
 
-                if i < len(reg_noms_person) and reg_noms_person[i][0] != None and len(reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", reg_noms_person[i][0])) < 3:
-                    if not reg_noms_person[i][0] in ws_seen.keys():
-                        ws1 = webscrape.imdb_type_check(reg_noms_person[i][0], 0)
-                        ws_seen[reg_noms_person[i][0]] = ws1
-                    else:
-                        ws1 = ws_seen[reg_noms_person[i][0]]
-                    if nom_type == "Actor" or nom_type == "Actress":
-                        if ws1 != None and not ws1[0] in nominees_ws and nom_type == ws1[1]:
-                            nominees_ws.append(ws1[0])
-                    else:
-                        if ws1 != None and not ws1[0] in nominees_ws and type(ws1[1]) != list:
-                            nominees_ws.append(ws1[0])
-                        # if not reg_noms_person[i][0] in nominees and nom_type == ws1[1]:
-                        #     nominees.append(reg_noms_person[i][0])
-                    counter2 += 1
+            # nom_type != "content" and nom_type == ws1[1])
 
+            if candidates[i][0] != None and len(reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", candidates[i][0])) < 4:
+                if isSubstring(candidates[i][0], nominees_ws):
+                    continue
+                # if we haven't encountered this name, webscrape and add it to ws_seen
+                if not candidates[i][0] in ws_seen.keys():
+                    ws1 = webscrape.imdb_type_check(candidates[i][0], 0, n_type)
+                    # ws1 = getWSResults(candidates[i][0], year)
+                    ws_seen[candidates[i][0]] = ws1
+                    ws_seen = addPermutations(candidates[i][0], ws1, ws_seen)
+                # if we have seen it already, just access its value from ws_seen
+                else:
+                    ws1 = ws_seen[candidates[i][0]]
+
+                # if the nominee type is either actor or actress, we must exclude those of the other type from nominee list
+                if nom_type == "Actress":
+                    if ws1 != None and not ws1[0] in nominees_ws and (nom_type == ws1[1] or (ws1[1] != "Actor" and type(ws1[1]) != list)) and not isSubstring(ws1[0], nominees_ws) and reg.search("f.ck", ws1[0].lower()) == None and len(reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", ws1[0])) < 4: # last part here is to edit out profanity in results
+                        # nominees_ws.append(ws1[0])
+                        nominees_ws.append(candidates[i][0])
+                elif nom_type == "Actor":
+                    if ws1 != None and not ws1[0] in nominees_ws and (nom_type == ws1[1] or (ws1[1] != "Actress" and type(ws1[1]) != list)) and not isSubstring(ws1[0], nominees_ws) and reg.search("f.ck", ws1[0].lower()) == None and len(reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", ws1[0])) < 4: # last part here is to edit out profanity in results
+                        # nominees_ws.append(ws1[0])
+                        nominees_ws.append(candidates[i][0])
+                # if the nominee type is just person
+                else:
+                    if ws1 != None and not ws1[0] in nominees_ws and type(ws1[1]) != list and not isSubstring(ws1[0], nominees_ws) and reg.search("f.ck", ws1[0].lower()) == None: # last part here is to edit out profanity in results
+                        # nominees_ws.append(ws1[0])
+                        nominees_ws.append(candidates[i][0])
+
+                    # if not reg_noms_person[i][0] in nominees and nom_type == ws1[1]:
+                    #     nominees.append(reg_noms_person[i][0])
                 
+            # increment the counter keeping track of search depth
+            counter2 += 1
 
-                # base case for breaking out of loop
-                if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
-                    break
+            # base case for breaking out of loop
+            if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
+                break
 
-                
-                if i < len(list_noms_person) and list_noms_person[i][0] != None and len(reg.findall("(?=(?<!\w)(\w+)(?:\W|$))", list_noms_person[i][0])) < 3:
-                    # print(list_noms[i][0])
-                    if not list_noms_person[i][0] in ws_seen.keys():
-                        ws2 = webscrape.imdb_type_check(list_noms_person[i][0], 0)
-                        ws_seen[list_noms_person[i][0]] = ws2
-                    else:
-                        ws2 = ws_seen[list_noms_person[i][0]]
-                    # ws2 = getWSResults(list_noms_person[i][0], year)
-                    if nom_type == "Actor" or nom_type == "Actress":
-                        if ws2 != None and not ws2[0] in nominees_ws and nom_type == ws2[1]:
-                            nominees_ws.append(ws2[0])
-                    else:
-                        if ws2 != None and not ws2[0] in nominees_ws and type(ws2[1]) != list:
-                            nominees_ws.append(ws2[0])
-                        # if not list_noms_person[i][0] in nominees and nom_type == ws2[1]:
-                        #     nominees.append(list_noms_person[i][0])
-                    counter2 += 1
-
-                
-
-                    # base case for breaking out of loop
-                if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
-                    break
-        else:
-            for i in range(max(len(reg_noms), len(list_noms))):
-                # print(reg_noms[i][0])
-                # print(year)
-
-                if i < len(reg_noms) and reg_noms[i][0] != None:
-                    if not reg_noms[i][0] in ws_seen.keys():
-                        ws1 = webscrape.imdb_type_check(reg_noms[i][0], year)
-                        ws_seen[reg_noms[i][0]] = ws1
-                    else:
-                        ws1 = ws_seen[reg_noms[i][0]]
-                    # ws1 = webscrape.imdb_type_check(reg_noms[i][0], year)
-                    if ws1 != None and not ws1[0] in nominees_ws:
-                        nominees_ws.append(ws1[0])
-                        # if not reg_noms[i][0] in nominees:
-                        #     nominees.append(reg_noms[i][0])
-                    counter2 += 1
-
-
-                # base case for breaking out of loop
-                if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
-                    break
-                if i < len(list_noms) and list_noms[i][0] != None:
-                    # print(list_noms[i][0])
-                    if not list_noms[i][0] in ws_seen.keys():
-                        ws2 = webscrape.imdb_type_check(list_noms[i][0], year)
-                        ws_seen[list_noms[i][0]] = ws2
-                    else:
-                        ws2 = ws_seen[list_noms[i][0]]
-                    # ws2 = webscrape.imdb_type_check(list_noms[i][0], year)
-                    if ws2 != None and not ws2[0] in nominees_ws:
-                        nominees_ws.append(ws2[0])
-                        # if not list_noms[i][0] in nominees:
-                        #     nominees.append(list_noms[i][0])
-                    counter2 += 1
-                    # base case for breaking out of loop
-                if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
-                    break
+    # if the type is content
     else:
-        for i in range(3):
-            if i < len(reg_noms):
-                nominees.append(reg_noms[i][0])
-            if i < len(list_noms):
-                nominees.append(list_noms[i][0])
+        for i in range(len(candidates)):
+            # print(reg_noms[i][0])
+            # print(year)
 
-    if winner != None and not winner in nominees_ws:
-        nominees_ws.append(winner)
+            if candidates[i][0] != None:
+                if isSubstring(candidates[i][0], nominees_ws):
+                    continue
+                if not candidates[i][0] in ws_seen.keys():
+                    ws1 = webscrape.imdb_type_check(candidates[i][0], 0, n_type)
+                    # ws1 = getWSResults(candidates[i][0], year)
+                    ws_seen[candidates[i][0]] = ws1
+                    ws_seen = addPermutations(candidates[i][0], ws1, ws_seen)
+                else:
+                    ws1 = ws_seen[candidates[i][0]]
+                # ws1 = webscrape.imdb_type_check(reg_noms[i][0], year)
+                if ws1 != None and not ws1[0] in nominees_ws and not isSubstring(ws1[0], nominees_ws) and type(ws1[1]) == list and reg.search("f.ck", ws1[0].lower()) == None: # last part here is to edit out profanity in results
+                    nominees_ws.append(ws1[0])
+
+                    # nominees_ws.append(candidates[i][0])
+
+                    # if not reg_noms[i][0] in nominees:
+                    #     nominees.append(reg_noms[i][0])
+            counter2 += 1
+
+
+            # base case for breaking out of loop
+            if len(nominees_ws) >= max_noms or counter2 > max_search_depth:
+                break
+                
+    
+
+    if winner != None and not winner.title() in nominees_ws:
+        nominees_ws.append(winner.title())
 
     return (nominees_ws, ws_seen)
 
 
-def findNominees(pandaf, award_name, num, rtOn: bool = False, keyword_char_limit: int = 3, seen: Optional[dict] = None, list_seen: Optional[dict] = None, winner: Optional[str] = None, ws_seen: Optional[dict] = None):
+# check regexes for the times between the first quartile and third quartile of tweets announcing a winner for the award
+def check_Q1_to_Q3(pandaf, n_type, rtOn: bool = False, quartiles: list = None, winner: str = "", ws_seen: Optional[dict] = None):
 
-
-    #print(events['event_nom'])
+    year = pandaf['timestamp_ms'][pandaf.shape[0]-1].year
 
     nom_candidates = {}
 
-    # threshold for proportion of keywords that have to be in a string for it to be evaluated
-    threshold = 0.6
+    # if the 3rd quartile is a long time after the median, change the range to 3 minutes after the median
+    if quartiles[2] > quartiles[1] + 60000000000 * 15:
+        quartiles[2] = quartiles[1] + 60000000000 * 3
 
-    # get the currently specified award name
-    curr_award = award_name# curr_event.awards[list(curr_event.awards.keys())[num]]
-    # print(curr_award)
-
-    # get a list of words (keywords) to search for from the award name
-    keywords = reg.findall("\w{"+ str(keyword_char_limit) +"}\w+", curr_award.replace("-", ""))
-    
-
-    # some logic using the award name to exclude overlapping results (ex: best drama vs best actor in a drama)
-    exclude_list = []
-    if not "actor" in keywords:
-        exclude_list.append("actor")
-    if not "actress" in keywords:
-        exclude_list.append("actress")
-    if ("picture" in keywords or "movie" in keywords or "film" in keywords) and not "series" in keywords:
-        exclude_list.append("series")
-    elif "miniseries" in keywords:
-        exclude_list.append("series")
-    if not "supporting" in keywords:
-        exclude_list.append("supporting")
-
-    for h in exclude_list:
-        if h in keywords:
-                keywords.remove(h)
-
-    # some keywords that are best to ignore since they are usually omitted or some other reason
-    ignore_list = ["performance", "television", "motion", "picture", "original", "best", "role", "made", "feature", 'film']
-    # print(ignore_list)
-
-    # print(keywords)
-    
-    for x in ignore_list:
-        if x in keywords:
-            keywords.remove(x)
-
-    # print(keywords)
-
-    year = pandaf['timestamp_ms'][pandaf.shape[0]-1].year  # the year of the event NOTE: maybe add this to the event data structure?
-
-    new_seen = seen.copy()
-    new_seen2 = seen.copy()
-
-    # print(exclude_list)
-
-    win_count = 0 # number of times a tweet says that a movie has won X award
-    win_threshold = 5 # threshold for win_count to equal/surpass for the program to assume the winner has been announced
-    win_time = None # time that win_threshold is surpassed at (starts at None)
-    min_after_threshold = 60000000000 * 5 # threshold maximum for the time after win_threshold is surpassed that tweets are "active" and more regex parses will apply.
+    # if the 1st quartile is a long time before the median, change the range to 3 minutes before the median
+    if quartiles[1] > quartiles[0] + 60000000000 * 15:
+        quartiles[0] = quartiles[1] - 60000000000 * 3
 
     for i in range(pandaf.shape[0]):
-
-        if(seen != None and i in seen):
-            #if i % 1000 == 0: print(i)
-            continue
+        curr_time = pandaf['timestamp_ms'][i].value
 
         curr_text = pandaf['text'][i]
         curr_text = curr_text.replace("\"", "")
@@ -501,168 +322,82 @@ def findNominees(pandaf, award_name, num, rtOn: bool = False, keyword_char_limit
         curr_text = curr_text.replace("#", "")
         curr_text = curr_text.replace("’", " u201c ")
         curr_text = curr_text.replace("‘", " u201c ")
-        
+        curr_text = curr_text.replace("@", "")
 
-        rt = None
-
-        if not rtOn and (seen == None or seen == {}):
-            rt = reg.search("^(?:[rR][tR])\s+", curr_text) # reg.search("\s+(?:rt)\s+", curr_text)
+        if not rtOn:
+            rt = reg.search("^(?:[rR][tT])\s+", curr_text) # reg.search("\s+(?:rt)\s+", curr_text)
             if rt == None:
                 rt = reg.search("\s+(?:rt)\s+", curr_text)
             if rt == None and "u201c" in curr_text:
                 rt = "not None"
+            if rt == None and "http" in curr_text:
+                rt = "not None"
 
         if not rtOn and rt != None:
-            if new_seen == None:
-                new_seen = {}
-            new_seen[i] = curr_text
-            continue
-
-        # if any of the explicitly excluded results are in the string, skip to the next string and don't waste any time on other searches for this string
-        exclude_results = []
-        for h in exclude_list:
-            temp_ex = reg.search("(?:^|\s+|-|,|/|!|:)" + reg.escape(h) + "(?:\s+|-|/|,|!|:|$)", curr_text)
-            
-            if(temp_ex != None):
-                exclude_results.append(temp_ex)
-                break
-        if(len(exclude_results) > 0):
+            # if new_seen == None:
+            #     new_seen = {}
+            # new_seen[i] = curr_text
             continue
 
         
 
-        # creates a dictionary of regex search results for the string being evaluated. captured strings are potential nominees. there is only 1 capture group per value
+        # only check values that are after the 1st quartile (a bit before is fine) and before the median
+        if(curr_time < quartiles[0] - 60000000000 * 3 or curr_time > quartiles[2]):
+            # if "weaver" in curr_text.lower(): 
+            #     print(curr_text)
+            #     print(pd.to_datetime(quartiles[2]))
+            #     print(pd.to_datetime(curr_time))
+            #if i % 1000 == 0: print(i)
+            continue
+        
+        # check times immediately after the award winner is announced (so stuff like X was robbed, should have won, etc.)
         nom_find = {}
-        nom_find = getMatches(curr_text, nom_find, 1, "\s+beat[s|\s*](?:out\s*)*\s*(['\w+\s*]+)", False, "beat") # no reverse
-        # nom_find[1] = reg.search("\s+beat[s|\s*](?:out\s*)*\s*(['\w+\s*]+)", curr_text) # no reverse
-        nom_find = getMatches(curr_text, nom_find, 2, "(['\w+\s*]*)(?:really\s*|probably\s*|maybe\s*|potentially\s*|might\s*)*(?:just\s*|could\s*)*(?:potentially\s*|really\s*|maybe\s*|probably\s*|somehow\s*|might\s*)*\s+beat[s|\s*]", False, "beat") # reverse
-        # nom_find[2] = reg.search("(['\w+\s*]*)(?:really\s*|probably\s*|maybe\s*|potentially\s*|might\s*)*(?:just\s*|could\s*)*(?:potentially\s*|really\s*|maybe\s*|probably\s*|somehow\s*|might\s*)*\s+beat[s|\s*]", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 3, "(['\w+\s*]*)should\s*(?:have|'ve)\s*(?:w[io]n|gotten|got|been|be|get|snag|snagged)", False, "should") # reverse
-        # nom_find[3] = reg.search("(['\w+\s*]*)should\s*(?:have|'ve)\s*(?:w[io]n|gotten|got|been|be|get|snag|snagged)", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 4, "(['\w+\s*]*)\s+(?:just\s*|\s*)(?:was|got)\s*(?:just\s*)*\s+robbed", False, "robbed") # reverse
-        # nom_find[4] = reg.search("(['\w+\s*]*)\s+(?:just\s*|\s*)(?:was|got)\s*(?:just\s*)*\s+robbed", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 5, "(['\w+\s*]*)did(?:n't|\s+not)\s+win", False, "did") # reverse
-        # nom_find[5] = reg.search("(['\w+\s*]*)did(?:n't|\s+not)\s+win", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 6, "(['\w+\s*]*)(?:was\s*|gets\s*|got\s*|getting\s*|is\s*)\s*snubbed", False, "snubbed") # reverse
-        # nom_find[6] = reg.search("(['\w+\s*]*)(?:was\s*|gets\s*|got\s*|getting\s*|is\s*)\s*snubbed", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 7, "(?:pull|pray|hop|wish|expect|want|root|cheer|deserve|deserv)(?:ing|ed)*\s+(?:for|that|4|it\s+is|it's|its|it\s+was|to)\s+(['\w+\s*]+)", False) # no reverse
-        # nom_find[7] = reg.search("(?:pull|pray|hop|wish|expect|want|root|cheer|deserve|deserv)(?:ing|ed)*\s+(?:for|that|4|it\s+is|it's|its|it\s+was)\s+(['\w+\s*]+)", curr_text) # no reverse
-        nom_find = getMatches(curr_text, nom_find, 8, "(?:pull|pray|hop|wish|expect|want|root|cheer|deserve|deserv)(?:ing|ed)*\s+(?!for|that|4|it\s+is|it's|its|it\s+was|to)(['\w+\s*]+)", False) # no reverse
-        # nom_find[8] = reg.search("(?:pull|pray|hop|wish|expect|want|root|cheer|deserve|deserv)(?:ing|ed)*\s+(?!for|that|4|it\s+is|it's|its|it\s+was)(['\w+\s*]+)", curr_text) # no reverse
-        nom_find = getMatches(curr_text, nom_find, 9, "c[o']*m[e\s+]*on\s+(['\w+\s*]+)", False, "on") # no reverse
-        # nom_find[9] = reg.search("c[o']*m[e\s+]*on\s+(['\w+\s*]+)", curr_text) # no reverse
-        # nom_find = getMatches(curr_text, nom_find, 10, "(['\w+\s*]*)has\s+(?:a|the)\s+chance") # reverse
-        # nom_find[10] = reg.search("(['\w+\s*]*)has\s+(?:a|the)\s+chance", curr_text) # not super important (few results) reverse
-        nom_find = getMatches(curr_text, nom_find, 11, "(?:hope|please)\s+(?!please)(?:that\s*|let\s*)*(['\w+\s*]+)win", False, "win") # reverse
-        # nom_find[11] = reg.search("(?:hope|please)\s+(?!please)(?:that\s*|let\s*)*(['\w+\s*]+)win", curr_text)# reverse
-        nom_find = getMatches(curr_text, nom_find, 12, "^(?<!if)(['\w+\s*]*)was\s+nominated", False, "nominate") # reverse
-        # nom_find[12] = reg.search("^(?<!if)(['\w+\s*]*)was\s+nominated", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 13, "(['\w+\s*]*)\s+possibl", False, "possibl") # reverse
-        # nom_find[13] = reg.search("(['\w+\s*]*)possibl", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 14, "(['\w+\s*]*)\s+los(?:t|es)", False, "los") # reverse
-        # nom_find[14] = reg.search("(['\w+\s*]*)\s+los(?:t|es)", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 15, "\s+los(?:t|es)\s+to\s+(['\w+\s*]*)", False, "los") # no reverse
-        # nom_find[15] = reg.search("\s+los(?:t|es)\s+to\s+(['\w+\s*]*)", curr_text) # no reverse
-
-        nom_find = getMatches(curr_text, nom_find, 16, "(['\w+\s*]*)\s+(?:better)*\s*(?:not)*\s*w[oi]ns*", False) # reverse
-        # nom_find[16] = reg.search("(['\w+\s*]*)\s+(?:better)*\s*(?:not)*\s*w[oi]ns*", curr_text) # reverse
-        
-        nom_find = getMatches(curr_text, nom_find, 19, "(?:why|how)\s+(?:(?:in)*\s*the\s*\w*)*\s*(?:did|has|was)\s+(['\w+\s*]+)", False) # no reverse
-        # nom_find[19] = reg.search("(?:why|how)\s+(?:(?:in)*\s*the\s*\w*)*\s*(?:did|has|was)\s+(['\w+\s*]+)", curr_text) # no reverse
-        nom_find = getMatches(curr_text, nom_find, 20, "(?:why|how)\s+(?:(?:in)*\s*the\s*\w*)*\s*(?!:did|has|was)\s+(['\w+\s*]+)", False) # no reverse
-        # nom_find[20] = reg.search("(?:why|how)\s+(?:(?:in)*\s*the\s*\w*)*\s*(?!:did|has|was)\s+(['\w+\s*]+)", curr_text) # no reverse
-        nom_find = getMatches(curr_text, nom_find, 21, "(['\w+\s*]*)\s+(?:was|is|were)\s+(?:the|a)*\s*(?:better|more|worse|less|terrible|bad|good|great|amazing|deserved|incredible|fantastic|best|worst|greatest|lamest|lame|boring|idiotic|absolutely|slog|bore|boring|rigged|unfortunate)", False) # reverse
-        # nom_find[21] = reg.search("(['\w+\s*]*)\s+(?:was|is|were)\s+(?:the|a)*\s*(?:better|more|worse|less|terrible|bad|good|great|amazing|deserved|incredible|fantastic|best|worst|greatest|lamest|lame|boring|idiotic|absolutely|slog|bore|boring|rigged|unfortunate)", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 22, "(['\w+\s*]*)please", False, "please") # reverse
-        # nom_find[22] = reg.search("(['\w+\s*]*)please", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 23, "(['\w+\s*]*)(?:vs|v\.|versus)", False) # reverse
-        # nom_find[23] = reg.search("(['\w+\s*]*)(?:vs|v\.|versus)", curr_text) # reverse
-        nom_find = getMatches(curr_text, nom_find, 24, "(?:vs|versus|go|picks*)\s+(['\w+\s*]+)", False) # no reverse
-        # nom_find[24] = reg.search("(?:vs|versus|go|picks*)\s+(['\w+\s*]+)", curr_text) # no reverse
-        # if top_candidate != None:
-        #     nom_find = getLists(pandaf, curr_award, [top_candidate], rtOn, seen)
-
-        # if the award has probably just been given out, but only within a small range of time after, do more regex parses that can be less specific
-        if win_time != None and pandaf['timestamp_ms'][i].value <= win_time + min_after_threshold:
-            # create less specific regex parses
-            nom_find = getMatches(curr_text, nom_find, 17, "(['\w+\s*]*)\s+[:;][\)\(DP\[\]X]", False) # reverse
-            nom_find = getMatches(curr_text, nom_find, 18, "(['\w+\s*]*)\s+no+[\s\.\!$]", False, "no") # reverse
-            nom_find = getMatches(curr_text, nom_find, 25, "no+[\s\.\!$]*\s+(['\w+\s*]+)", False, "no") # no reverse
-            # nom_find[17] = reg.search("(['\w+\s*]*)\s+[:;][\)\(DP\[\]X]", curr_text) # reverse
-            # nom_find[18] = reg.search("(['\w+\s*]*)\s+no+[\s\.\!$]", curr_text) # reverse
-            # nom_find[25] = reg.search("no+[\s\.\!$]*\s+(['\w+\s*]+)", curr_text) # no reverse
-            
-        elif win_time != None and win_time > 0:
-            win_time = - min_after_threshold
-            # print("\nEND OF WINNING TIME\n")
-        
-
-        # rt = None
+        nom_find = getMatches(curr_text, nom_find, 2, "(['\w+\s*\-*]*)(?<![wWgG][aAoO][sStT])\s+[sS]*[RrnN][OouU][Bbs][Bb][eE][dD]", False, "bbed") # reverse
+        nom_find = getMatches(curr_text, nom_find, 3, "(['\w+\s*\-*]*)\s+[sS]*[hHcC][oO][uU][lL][dD]\s*(?:[hH][aA][vV][eE]|\'*[Vv][Ee]|[aA]|[oO][fF])\s+.*\s*(?:[wW][OoIi][nN]|[gG][oO][Tt])", False, "ould") # reverse
+        nom_find = getMatches(curr_text, nom_find, 4, "(['\w+\s*\-*]*)\s+(?:[jJ][uU][Ss][Tt]\s*|\s*)(?:[Ww][Aa][SszZ]|[Gg][oO][Tt])\s*(?:[Jj][Uu][Ss][Tt]\s*)*\s+[sS]*[RrnN][OouU][Bbs][Bb][eE][dD]", False, "bbed") # reverse
+        nom_find = getMatches(curr_text, nom_find, 5, "(['\w+\s*\-*]*)\s+[dD][iI][dD](?:[nN]\'*[tT]|\s+[nN][oO][tT])\s+[wW][iI][nN]", False, "did") # reverse
+        nom_find = getMatches(curr_text, nom_find, 21, "^(?<![Ww][Ee][Ll][Ll])(['\w+\s*\-*]*)\s+(?:[rR][eE][aA][lL][lL][yY])*\s*[Dd][Ee][Ss][Ee][Rr][Vv]", False, "deserv") # reverse
+        nom_find = getMatches(curr_text, nom_find, 26, "[wW][Aa][Nn][Tt][Ee]*[Dd]*\s+(?![tT][oO])(['\w+\s*\-*]*)\s+[Tt][Oo]", False, "want") # reverse
+        nom_find = getMatches(curr_text, nom_find, 27, "[sS]*[hHcC][oO][uU][lL][dD](?:\s+[hH][aA][Vv][eE]|\'[vV][eE]|a)\s+[bB][eE][eE][Nn]\s+(['\w+\s*\-*]*)", False, "ould") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 28, "(['\w+\s*\-*]*)\s+.*\s*(?:[nN][eE][vV][eE][rR]|[wW][oO][nN]\'*[tT])\s+[wW][iI][nN]", False, "win") # reverse
+        nom_find = getMatches(curr_text, nom_find, 29, "(['\w+\s*\-*]*)\s+[dD][oO][eE][sS][nN]\'[tT]\s+(?:[wW][iI][nN]|[aA][pP][pP][rR])", False, "doesn") # reverse
+        nom_find = getMatches(curr_text, nom_find, 30, "(['\w+\s*\-*]*)\s+[mM][iI][sS][sS][eE]", False, "misse") # reverse
+        nom_find = getMatches(curr_text, nom_find, 31, "[gG][oO][nN][eE]\s+[tT][oO]\s+(['\w+\s*\-*]*)", False, "gone") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 32, "[bB][eE][tT][tT][eE][Rr]\s+[tT][hH][aA][nN]\s+(['\w+\s*\-*]*)", False, "bett") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 33, "[pP][oO][oO][rR]\s+(['\w+\s*\-*]*)", False, "poor") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 34, "[hH][oO][pP][eE][dD]\s+[tT][hH][aA][tT]\s+(['\w+\s*\-*]*)", False, "hope") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 35, "\s+[oO][vV][eE][rR]\s+(['\w+\s*\-*]*)", False, "over") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 36, "(['\w+\s*\-*]*)\s+[pP][lL][eE][aA][sS][eE]", False, "please") # reverse
+        nom_find = getMatches(curr_text, nom_find, 37, "(['\w+\s*\-*]*)(?:\'[sS]|\s+[iI][sS]|\s+[wW][aA][sS])\s+[nN][oO][mM][iI][nN]", False, "nomin") # reverse
+        nom_find = getMatches(curr_text, nom_find, 38, "[bB][eE][aA][tT][sS]*\s+(['\w+\s*\-*]*)", False, "beat") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 39, "[rR][oO][oO][tT][iI][nN][gG]\s+[fF][oO][rR]\s+(['\w+\s*\-*]*)", False, "rooting") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 40, "[hH][oO][pP](?:[eE]|[iI][nN][gG])\s*(?:[tT][hH][aA][tT])*(['\w+\s*\-*]*)\s+[wW][iI][nN]", False, "hop") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 41, "(['\w+\s*\-*]*)\s+[lL][oO][sS](?:[tT]|[eE])", False, "los") # reverse
+        nom_find = getMatches(curr_text, nom_find, 42, "[pP][rR][eE][fF][eE][rR](?:[rR][eE][dD])\s+(['\w+\s*\-*]*)", False, "prefer") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 43, "[wW][iI][sS][hH]\s+(['\w+\s*\-*]*)\s+[wW][oOiI][nN]", False, "wish") # not reverse
+        nom_find = getMatches(curr_text, nom_find, 44, "[pP][uU][lL][lL][iI][nN][gG]\s+[fF][oO][Rr]\s+(['\w+\s*\-*]*)\s+[tT][oO]\s+[wW][oOiI][nN]", False, "pull") # not reverse
 
         
-
-        # if the string doesn't match any of the nominee finding regexes, add it to new_seen (which is returned at the end of evaluating this award to be used when evaluating for future awards)
-        # also skip to the next string.
-        if(all(nom_find[x] == None for x in nom_find.keys())):
-            if new_seen == None:
-                new_seen = {}
-            new_seen[i] = curr_text
-            continue            
         
-        # get the proportion of the keywords that are in this string if they are above the threshold
-        keyword_prop = judgeKeywords(curr_text, keywords, threshold)
-        
-        
-        
-        if(     # we don't need to check if at least 1 of the nominee finding regexes found something bc it checks that earlier
-                (rtOn or rt == None) and # filters out (most) retweets if rtOn is False
-                (keyword_prop > 0 or (win_time != None and pandaf['timestamp_ms'][i].value <= win_time + min_after_threshold)) # if the proportion of keywords in the string is higher than the threshold
-                ): 
-            # print(i)
-            # print(pandaf['timestamp_ms'][i].value)
-            # print(pandaf['timestamp_ms'][i])
-            # if something probably actually won, then increment win_count
-            if(win_count < win_threshold and nom_find[16] != None and keyword_prop > 0 and reg.search("^(?<!if)(['\w+\s*]*)\s+[wW]ins", curr_text) != None): 
-                win_count += 1   
-            # if we haven't already initialized win_time properly and win_count has now passed the threshold, initialize win_time with the current time
-            if win_time == None and win_count >= win_threshold:
-                win_time = pandaf['timestamp_ms'][i].value
-                # print("\nIT'S WINNING TIME\n")
 
-            # adds text that was used to find a nominee for one award category to the seen list when going over later awards
-            if new_seen2 == None:
-                new_seen2 = {}
-            new_seen2[i] = curr_text
-
-            # print(curr_text)
-
-            # for each regex search criteria for a nominee (ex: X should have won)
-            for x in nom_find.keys():
-                # if that expression was matched in the sentence, 
-                if nom_find[x] != None:
-                    # add the possible permutations of the following string to the nominee candidates using doProcessing, so that one of them should be the result
-                    rev = True
-                    match x % 100:
-                        case 2 | 3 | 4 | 5 | 6 | 10 | 11 | 12 | 13 | 14 | 16 | 17 | 18 | 21 | 22 | 23:
-                            rev = True
-                        case _: 
-                            rev = False
-                    if(x % 100 == 16): # weighs wins less because they are much more abundant
-                        doProcessing(nom_find[x], nom_candidates, rev, (keyword_prop**3) / 3.0)
-                    else:
-                        doProcessing(nom_find[x], nom_candidates, rev, keyword_prop**3)
-
-            # s = reg.search("(^[A-Z][\w+\s+]*)[wW]ins", win_find1.string) # captures the string starting with a capital letter in front of "[wW]ins"
-            #s = reg.search("((?:[A-Z]\w*\s*)+)\s+[wW]ins", win_find1.string) # captures the sequence of all starting-with-capital-letter words in front of "[wW]ins" 
-            
-            
-                #print(s.group(1))
-                # search_result = 1# webscrape.imdb_type_check(s.group(1))
-                # if(search_result != None):
-                #     candidates.append(s.group(1))
-    #print(win_candidates[1])
-    #print(win_candidates.keys())
-
+        # for each regex search criteria for a nominee (ex: X should have won)
+        for x in nom_find.keys():
+            # if that expression was matched in the sentence, 
+            if nom_find[x] != None:
+                
+                # print(nom_find[x].string)
+                # print(nom_find[x].group(1))
+                
+                # add the possible permutations of the following string to the nominee candidates using doProcessing, so that one of them should be the result
+                rev = True
+                match x % 100:
+                    case 2 | 3 | 4 | 5 | 6 | 10 | 11 | 12 | 13 | 14 | 16 | 17 | 18 | 21 | 22 | 23 | 26 | 28 | 29 | 30 | 36 | 37 | 41:
+                        rev = True
+                    case _: 
+                        rev = False
+                
+                doProcessing2(nom_find[x], nom_candidates, rev, n_type)
+                
 
     votes = {}
     # i is the # of words in the string
@@ -673,10 +408,12 @@ def findNominees(pandaf, award_name, num, rtOn: bool = False, keyword_char_limit
             multiplier = 0.75
         # j is an actual key-value pair of string to weighted vote
         for j in nom_candidates[i].keys():
-            if (not j in votes and nom_candidates[i][j]):
-                votes[j] = nom_candidates[i][j] * multiplier
-
-    ws = None
+            if(isCommon(j)):
+                continue
+            if (not j.title() in votes and nom_candidates[i][j]):
+                votes[j.title()] = nom_candidates[i][j] * multiplier
+            elif (j.title() in votes and nom_candidates[i][j]):
+                votes[j.title()] += nom_candidates[i][j] * multiplier
 
     votes_list = []
 
@@ -684,60 +421,27 @@ def findNominees(pandaf, award_name, num, rtOn: bool = False, keyword_char_limit
         if("" in votes.keys()):
             votes[""] = 0
 
-        temp = max(votes, key = votes.get)
+        # temp = max(votes, key = votes.get)
         #if temp != None: print(temp)
 
         votes_list = list(votes.items())
         votes_list.sort(key=(lambda x: x[1]), reverse=True)
         # print("votes ranking: " + str(votes_list))
 
-        ws = max(votes, key = votes.get) # webscrape.imdb_type_check(max(votes, key = votes.get), year)
+        # ws = max(votes, key = votes.get) # webscrape.imdb_type_check(max(votes, key = votes.get), year)
+
+    (nominees, ws_seen) =  compileNominees(votes_list, n_type, year, winner, ws_seen)
+        # add that webscrape dictionary stuff in here
+
+    return (nominees, ws_seen)
 
 
-    # # some backup for if the strings still left have extraneous stuff at the start and there are ties. 3-2 is for common string lengths of people names, 1 is for worst case scenario
-    # if ws == None and 3 in nom_candidates.keys():
-    #     ws = max(nom_candidates[3], key = nom_candidates[3].get) # webscrape.imdb_type_check(max(nom_candidates[3], key = nom_candidates[3].get), year)
-    # if ws == None and 2 in nom_candidates.keys():
-    #     ws = max(nom_candidates[2], key = nom_candidates[2].get) # webscrape.imdb_type_check(max(nom_candidates[2], key = nom_candidates[2].get), year)
-    # if ws == None and 1 in nom_candidates.keys():
-    #     ws = max(nom_candidates[1], key = nom_candidates[1].get) # webscrape.imdb_type_check(max(nom_candidates[1], key = nom_candidates[1].get), year)
-
-    # # if there is some weirdness, try turning off retweets or varying the character minimum for keywords
-    # if ((votes == {} or ws == None) and rtOn and keyword_char_limit == 3):
-    #     (ws, new_seen) = findNominees(pandaf, curr_event, num, not rtOn, 3, new_seen)
-    # elif ((votes == {} or ws == None) and not rtOn and keyword_char_limit == 3):
-    #     (ws, new_seen) = findNominees(pandaf, curr_event, num, not rtOn, 4, new_seen)
-    # elif ((votes == {} or ws == None) and rtOn and keyword_char_limit == 4):
-    #     (ws, new_seen) = findNominees(pandaf, curr_event, num, not rtOn, 4, new_seen)
-        
-
-    # # if nothing is found, run again without disregarding seen tweets
-    # if(votes == {} and seen != {} and ws == None):
-    #     (ws, _) = findNominees(pandaf, curr_event, num, True, 3, {})
-
-    # if first == True:
-    #     print(findNominees(pandaf, curr_event, num, rtOn, keyword_char_limit, new_seen2, ws, False))
-    # print("\n")
-    if winner != None:
-        (ws2, votes2) = toVotes(getLists(pandaf, curr_award, [winner], False, {**new_seen2, **list_seen}))
-    elif new_seen2 != None and list_seen != None:
-        (ws2, votes2) = toVotes(getLists(pandaf, curr_award, [ws], False, {**new_seen2, **list_seen}))
-    
-    # for ii in range(50):
-    #     print(votes2[ii])
-    # print(votes2)
-    # print("w2 = " + str(ws2))
-    # print(votes_list)
-    # print("ws = " + str(ws))
-
-    if votes2 == [] and votes_list == []:
-        noms_list = [winner]
+def getNominees(pandaf, winner: str, ws_seen: dict, award_off):
+    if ws_seen == None: ws_seen =  {}
+    award_off = award_off.lower()
+    if "director" in award_off or "actor" in award_off or "actress" in award_off:
+        n_type = 1
     else:
-        (noms_list, ws_seen) = compileNominees(votes_list, votes2, year, winner, ws_seen)
-    
-
-    for x in new_seen2.keys():
-        if not x in new_seen.keys():
-            new_seen[x] = new_seen2[x]
-
-    return (noms_list, new_seen, list_seen, ws_seen)
+        n_type = 2
+    qts = getQTS(pandaf, winner, False)
+    return check_Q1_to_Q3(pandaf, n_type, False, qts, winner, ws_seen)
